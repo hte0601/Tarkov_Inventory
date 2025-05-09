@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class InventoryUIManager : MonoBehaviour
+public class InventoryCanvas : MonoBehaviour
 {
-    public static InventoryUIManager instance;
+    public static InventoryCanvas instance;
 
     [SerializeField] private MousePointerUI mousePointerUI;
 
 
     private bool isDragging = false;
-    private Item draggingItem = null;
+    private ItemUI draggingItem = null;
 
     void Awake()
     {
@@ -37,7 +37,7 @@ public class InventoryUIManager : MonoBehaviour
         }
     }
 
-    public void OnItemBeginDrag(PointerEventData eventData, Item item)
+    public void OnItemBeginDrag(PointerEventData eventData, ItemUI item)
     {
         if (!isDragging)
         {

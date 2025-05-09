@@ -4,7 +4,7 @@ using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class Item : MonoBehaviour, IDragHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler
+public class ItemUI : MonoBehaviour, IDragHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler
 {
     private UnityEngine.UI.Image image;
 
@@ -65,7 +65,7 @@ public class Item : MonoBehaviour, IDragHandler, IInitializePotentialDragHandler
     {
         if (eventData.button == PointerEventData.InputButton.Left)
         {
-            InventoryUIManager.instance.OnItemBeginDrag(eventData, this);
+            InventoryCanvas.instance.OnItemBeginDrag(eventData, this);
         }
     }
 
