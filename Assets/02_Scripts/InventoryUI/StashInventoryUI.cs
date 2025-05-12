@@ -3,17 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class StashInventoryUI : InventoryUI, IDropHandler
+public class StashInventoryUI : InventoryUI, IDropHandler, IPointerDownHandler
 {
-    private InventoryCanvas inventoryCanvas;
-
-    private void Awake()
+    protected override void Awake()
     {
-        if (!transform.parent.TryGetComponent(out inventoryCanvas))
-        {
-            Debug.LogError("부모 오브젝트에서 특정 컴포넌트를 찾을 수 없음");
-        }
+        base.Awake();
     }
+
 
     public void OnDrop(PointerEventData eventData)
     {
@@ -21,5 +17,11 @@ public class StashInventoryUI : InventoryUI, IDropHandler
         {
             InventoryCanvas.instance.OnInventoryDrop(eventData, this);
         }
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        RowColumn index = EventPosToInventoryIndex(eventData.position);
+        Debug.LogFormat("({0},{1})", index.row, index.col);
     }
 }
