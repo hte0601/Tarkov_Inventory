@@ -10,39 +10,65 @@ public struct RowColumn
     public int col;
 }
 
+
 public class InventoryUI : UIBase
 {
+    public const int SLOT_SIZE = 64;
+
     [SerializeField] protected RowColumn inventorySize;
 
-    protected RowColumn EventPosToInventoryIndex(Vector2 eventPos)
+    protected RowColumn LocalPointToInventoryIndex(Vector2 localPoint, bool clampIndex)
     {
         RowColumn index;
+        float width = rectTransform.rect.width;
+        float height = rectTransform.rect.height;
 
-        ScreenPointToLocalPoint(eventPos, out Vector2 point, OriginPoint.TopLeft);
+        localPoint.x += rectTransform.pivot.x * width;
+        localPoint.y += rectTransform.pivot.y * height;
+        localPoint.y = height - localPoint.y;
 
-        // index 계산
-        index.row = (int)(point.y / (rectTransform.rect.height / inventorySize.row));
-        index.col = (int)(point.x / (rectTransform.rect.width / inventorySize.col));
+        index.row = Mathf.FloorToInt(localPoint.y / SLOT_SIZE);
+        index.col = Mathf.FloorToInt(localPoint.x / SLOT_SIZE);
 
-        // 계산 오차에 의해 index 범위를 벗어나는 경우 방지
-        if (index.row < 0)
+        if (clampIndex)
         {
-            index.row = 0;
-        }
-        else if (inventorySize.row <= index.row)
-        {
-            index.row = inventorySize.row - 1;
-        }
-
-        if (index.col < 0)
-        {
-            index.col = 0;
-        }
-        else if (inventorySize.col <= index.col)
-        {
-            index.col = inventorySize.col - 1;
+            index.row = Mathf.Clamp(index.row, 0, inventorySize.row - 1);
+            index.col = Mathf.Clamp(index.col, 0, inventorySize.col - 1);
         }
 
         return index;
+    }
+
+    protected bool ScreenPointToInventoryIndex(Vector2 screenPoint, out RowColumn index, bool clampIndex)
+    {
+        if (ScreenPointToLocalPoint(screenPoint, out Vector2 localPoint))
+        {
+            index = LocalPointToInventoryIndex(localPoint, clampIndex);
+
+            return true;
+        }
+        else
+        {
+            index.row = 0;
+            index.col = 0;
+
+            return false;
+        }
+    }
+
+    protected Vector2 InventoryIndexToLocalPoint(RowColumn index)
+    {
+        Vector2 localPoint;
+        float width = rectTransform.rect.width;
+        float height = rectTransform.rect.height;
+
+        localPoint.x = (index.col + 0.5f) * SLOT_SIZE;
+        localPoint.y = (index.row + 0.5f) * SLOT_SIZE;
+        localPoint.y = height - localPoint.y;
+
+        localPoint.x -= rectTransform.pivot.x * width;
+        localPoint.y -= rectTransform.pivot.y * height;
+
+        return localPoint;
     }
 }
