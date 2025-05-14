@@ -1,77 +1,97 @@
 using System.Collections;
 using System.Collections.Generic;
-using Microsoft.Unity.VisualStudio.Editor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class ItemUI : MonoBehaviour, IDragHandler, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler
+public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
-    private UnityEngine.UI.Image image;
+    [SerializeField] private ItemData data;  //
 
-    private ItemData itemData;
+    private StashInventoryUI stashUI;
+    private RowColumn index;
+    private bool _isRotated;
 
-    private Vector3 lastPosition;
-    private bool isRotated = false;
-    private bool isDragging = false;
+    [HideInInspector] public Vector2 originPoint;  //
 
-    // private int x_size;
-    // private int y_size;
-
-    private void Awake()
+    public bool IsRotated
     {
-        if (!TryGetComponent(out image))
+        get { return _isRotated; }
+        private set
         {
-            Debug.LogError("오브젝트에서 특정 컴포넌트를 찾을 수 없음");
+            if (value)
+            {
+                _isRotated = true;
+                transform.rotation = Quaternion.Euler(0, 0, -90f);
+                originPoint.x = -(data.sizeY - 1) / 2f * InventoryUI.SLOT_SIZE;  // 캐싱?
+                originPoint.y = (data.sizeX - 1) / 2f * InventoryUI.SLOT_SIZE;
+            }
+            else
+            {
+                _isRotated = false;
+                transform.rotation = Quaternion.identity;
+                originPoint.x = -(data.sizeX - 1) / 2f * InventoryUI.SLOT_SIZE;
+                originPoint.y = (data.sizeY - 1) / 2f * InventoryUI.SLOT_SIZE;
+            }
         }
     }
 
 
-    public void BeginDrag()
+    protected override void Awake()
     {
-        isDragging = true;
-        image.raycastTarget = false;
+        base.Awake();
+
+        // 임시 코드
+        if (!transform.parent.TryGetComponent(out stashUI))
+        {
+            Debug.LogError("부모 오브젝트에서 StashInventoryUI 컴포넌트를 찾을 수 없음");
+        }
+
+        index.row = 0;
+        index.col = 0;
+        IsRotated = false;
+        //
     }
 
-    public void EndDrag()
-    {
-        isDragging = false;
-        image.raycastTarget = true;
-    }
+
+    // public void InitUI(ItemData data)
+    // {
+    //     this.data = data;
+    // }
+
 
     public void RotateItem()
     {
-        if (isRotated)
-        {
-            isRotated = false;
-            transform.rotation = Quaternion.identity;
-        }
-        else
-        {
-            isRotated = true;
-            transform.rotation = Quaternion.Euler(0, 0, -90f);
-            // transform.eulerAngles = new Vector3(0, 0, -90f);
-        }
+        IsRotated = !IsRotated;
+    }
+
+    public void MoveItemTo(StashInventoryUI stashUI, RowColumn index)
+    {
+        this.stashUI = stashUI;
+        this.index = index;
     }
 
 
     public void OnDrag(PointerEventData eventData) { }
 
-    public void OnInitializePotentialDrag(PointerEventData eventData)
-    {
-        lastPosition = transform.localPosition;
-    }
-
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left)
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (stashUI)
         {
-            InventoryCanvas.instance.OnItemBeginDrag(eventData, this);
+            stashUI.OnItemBeginDrag(this, index);
         }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("EndDrag");
-        Debug.Log(eventData.dragging);
+        if (eventData.button != PointerEventData.InputButton.Left)
+            return;
+
+        if (stashUI)
+        {
+            stashUI.OnItemEndDrag(this, index);
+        }
     }
 }
