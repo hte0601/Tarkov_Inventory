@@ -51,6 +51,11 @@ public class ItemDragManager : MonoBehaviour
     }
 
 
+    public ItemUI GetDraggingItem()
+    {
+        return draggingItem;
+    }
+
     public void BeginItemDrag(ItemUI item)
     {
         IsDragging = true;
@@ -60,15 +65,11 @@ public class ItemDragManager : MonoBehaviour
         draggingItem = item;
     }
 
-    public ItemUI DropItem(InventoryUI inventoryUI)
+    public void DropItemToInventory(InventoryUI inventoryUI)
     {
-        ItemUI item = draggingItem;
-
         IsDragging = false;
         draggingItem.transform.SetParent(inventoryUI.transform);
         draggingItem = null;
-
-        return item;
     }
 
     public void CancleItemDrag(InventoryUI inventoryUI)

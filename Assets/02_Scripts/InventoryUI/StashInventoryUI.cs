@@ -11,25 +11,25 @@ public class StashInventoryUI : InventoryUI, IDropHandler
     }
 
 
-    public void OnItemBeginDrag(ItemUI item, RowColumn index)
+    public void OnItemBeginDrag(ItemUI item)
     {
         // 논리적으로는 불가능한 경우임
         if (ItemDragManager.instance.IsDragging)
             return;
 
-        // RemoveItemFromInventory(index);
+        RemoveItemFromInventory(item);
         ItemDragManager.instance.BeginItemDrag(item);
     }
 
-    public void OnItemEndDrag(ItemUI item, RowColumn index)
+    public void OnItemEndDrag(ItemUI item)
     {
         if (!ItemDragManager.instance.IsDragging)
             return;
+
         // 레퍼런스 이퀄 체크?
-        // 추가 처리 필요?
 
         ItemDragManager.instance.CancleItemDrag(this);
-        AddItemToInventory(item, index);
+        AddItemToInventory(item, item.Index);
     }
 
 
@@ -41,28 +41,34 @@ public class StashInventoryUI : InventoryUI, IDropHandler
         if (!ItemDragManager.instance.IsDragging)
             return;
 
-        // 드랍 가능한지 조건 체크
-
-        ItemUI item = ItemDragManager.instance.DropItem(this);
-        Vector2 screenPoint = eventData.position + item.originPoint;
-
+        // drop 이벤트 좌표로부터 index 계산
+        ItemUI item = ItemDragManager.instance.GetDraggingItem();
+        Vector2 screenPoint = eventData.position + item.TopLeftSlotPoint;
         ScreenPointToInventoryIndex(screenPoint, out RowColumn index, false);
-        AddItemToInventory(item, index);
 
-        Debug.LogFormat("({0}, {1}) 드래그 됨", index.row, index.col);
+        if (data.CanAddItemAtIndex(item, index))
+        {
+            ItemDragManager.instance.DropItemToInventory(this);
+            AddItemToInventory(item, index);
+
+            Debug.LogFormat("({0}, {1}) 드래그 성공", index.row, index.col);
+        }
+        else
+        {
+            Debug.LogFormat("({0}, {1}) 드래그 실패", index.row, index.col);
+        }
     }
 
 
     private void AddItemToInventory(ItemUI item, RowColumn index)
     {
-        Vector2 localPoint = InventoryIndexToLocalPoint(index);
-
-        item.transform.localPosition = localPoint - item.originPoint;
-        item.MoveItemTo(this, index);
+        item.transform.localPosition = InventoryIndexToLocalPoint(index) - item.TopLeftSlotPoint;
+        item.UpdateLocation(this, index);
+        data.AddItemAtIndex(item, index);
     }
 
-    private void RemoveItemFromInventory(RowColumn index)
+    private void RemoveItemFromInventory(ItemUI item)
     {
-        // 구현 필요
+        data.RemoveItem(item);
     }
 }

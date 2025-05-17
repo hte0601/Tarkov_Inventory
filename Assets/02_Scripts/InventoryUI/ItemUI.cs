@@ -8,30 +8,35 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
     [SerializeField] private ItemData data;  //
 
     private StashInventoryUI stashUI;
-    private RowColumn index;
+    public RowColumn Index { get; private set; }
+
+    private RowColumn _gridSize;
+    private Vector2 _topLeftSlotPoint;
     private bool _isRotated;
 
-    [HideInInspector] public Vector2 originPoint;  //
+    public RowColumn GridSize
+    {
+        get { return _gridSize; }
+    }
+
+    public Vector2 TopLeftSlotPoint
+    {
+        get { return _topLeftSlotPoint; }
+    }
 
     public bool IsRotated
     {
         get { return _isRotated; }
         private set
         {
-            if (value)
-            {
-                _isRotated = true;
-                transform.rotation = Quaternion.Euler(0, 0, -90f);
-                originPoint.x = -(data.sizeY - 1) / 2f * InventoryUI.SLOT_SIZE;  // 캐싱?
-                originPoint.y = (data.sizeX - 1) / 2f * InventoryUI.SLOT_SIZE;
-            }
-            else
-            {
-                _isRotated = false;
-                transform.rotation = Quaternion.identity;
-                originPoint.x = -(data.sizeX - 1) / 2f * InventoryUI.SLOT_SIZE;
-                originPoint.y = (data.sizeY - 1) / 2f * InventoryUI.SLOT_SIZE;
-            }
+            _isRotated = value;
+            transform.rotation = value ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+
+            _gridSize.row = value ? data.GridSize.width : data.GridSize.height;
+            _gridSize.col = value ? data.GridSize.height : data.GridSize.width;
+
+            _topLeftSlotPoint.x = -(_gridSize.col - 1) / 2f * InventoryUI.SLOT_SIZE;
+            _topLeftSlotPoint.y = (_gridSize.row - 1) / 2f * InventoryUI.SLOT_SIZE;
         }
     }
 
@@ -46,8 +51,6 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
             Debug.LogError("부모 오브젝트에서 StashInventoryUI 컴포넌트를 찾을 수 없음");
         }
 
-        index.row = 0;
-        index.col = 0;
         IsRotated = false;
         //
     }
@@ -64,10 +67,10 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
         IsRotated = !IsRotated;
     }
 
-    public void MoveItemTo(StashInventoryUI stashUI, RowColumn index)
+    public void UpdateLocation(StashInventoryUI stashUI, RowColumn index)
     {
         this.stashUI = stashUI;
-        this.index = index;
+        Index = index;
     }
 
 
@@ -80,7 +83,7 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 
         if (stashUI)
         {
-            stashUI.OnItemBeginDrag(this, index);
+            stashUI.OnItemBeginDrag(this);
         }
     }
 
@@ -91,7 +94,7 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 
         if (stashUI)
         {
-            stashUI.OnItemEndDrag(this, index);
+            stashUI.OnItemEndDrag(this);
         }
     }
 }

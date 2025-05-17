@@ -16,6 +16,20 @@ public class InventoryUI : UIBase
     public const int SLOT_SIZE = 64;
 
     [SerializeField] protected RowColumn inventorySize;
+    protected InventoryData data;
+
+    protected override void Awake()
+    {
+        base.Awake();
+
+        Initialize();
+    }
+
+    public void Initialize()
+    {
+        data = new(inventorySize);
+    }
+
 
     protected RowColumn LocalPointToInventoryIndex(Vector2 localPoint, bool clampIndex)
     {
