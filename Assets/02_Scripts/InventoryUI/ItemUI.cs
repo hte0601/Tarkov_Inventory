@@ -7,7 +7,7 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
     [SerializeField] private ItemData data;  //
 
-    private StashInventoryUI stashUI;
+    private InventoryGridUI gridUI;
     public RowColumn Index { get; private set; }
 
     private RowColumn _gridSize;
@@ -35,8 +35,8 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
             _gridSize.row = value ? data.GridSize.width : data.GridSize.height;
             _gridSize.col = value ? data.GridSize.height : data.GridSize.width;
 
-            _topLeftSlotPoint.x = -(_gridSize.col - 1) / 2f * InventoryUI.SLOT_SIZE;
-            _topLeftSlotPoint.y = (_gridSize.row - 1) / 2f * InventoryUI.SLOT_SIZE;
+            _topLeftSlotPoint.x = -(_gridSize.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+            _topLeftSlotPoint.y = (_gridSize.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
         }
     }
 
@@ -46,9 +46,9 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
         base.Awake();
 
         // 임시 코드
-        if (!transform.parent.TryGetComponent(out stashUI))
+        if (!transform.parent.TryGetComponent(out gridUI))
         {
-            Debug.LogError("부모 오브젝트에서 StashInventoryUI 컴포넌트를 찾을 수 없음");
+            Debug.LogError("부모 오브젝트에서 InventoryGridUI 컴포넌트를 찾을 수 없음");
         }
 
         IsRotated = false;
@@ -67,9 +67,9 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
         IsRotated = !IsRotated;
     }
 
-    public void UpdateLocation(StashInventoryUI stashUI, RowColumn index)
+    public void UpdateLocation(InventoryGridUI gridUI, RowColumn index)
     {
-        this.stashUI = stashUI;
+        this.gridUI = gridUI;
         Index = index;
     }
 
@@ -79,22 +79,26 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left)
-            return;
-
-        if (stashUI)
         {
-            stashUI.OnItemBeginDrag(this);
+            return;
+        }
+
+        if (gridUI)
+        {
+            gridUI.OnItemBeginDrag(this);
         }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left)
-            return;
-
-        if (stashUI)
         {
-            stashUI.OnItemEndDrag(this);
+            return;
+        }
+
+        if (gridUI)
+        {
+            gridUI.OnItemEndDrag(this);
         }
     }
 }

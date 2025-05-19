@@ -210,7 +210,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29a54395889fda54fa33e19c2e31c01a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inventorySize:
+  gridSize:
     row: 14
     col: 14
 --- !u!1001 &492609946
@@ -866,7 +866,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29a54395889fda54fa33e19c2e31c01a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inventorySize:
+  gridSize:
     row: 10
     col: 10
 --- !u!1 &1939109384

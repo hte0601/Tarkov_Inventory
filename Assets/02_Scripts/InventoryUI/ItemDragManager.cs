@@ -65,14 +65,14 @@ public class ItemDragManager : MonoBehaviour
         draggingItem = item;
     }
 
-    public void DropItemToInventory(InventoryUI inventoryUI)
+    public void DropItemToInventoryGrid(InventoryGridUI GridUI)
     {
         IsDragging = false;
-        draggingItem.transform.SetParent(inventoryUI.transform);
+        draggingItem.transform.SetParent(GridUI.transform);
         draggingItem = null;
     }
 
-    public void CancleItemDrag(InventoryUI inventoryUI)
+    public void CancleItemDrag(InventoryGridUI GridUI)
     {
         IsDragging = false;
 
@@ -81,7 +81,7 @@ public class ItemDragManager : MonoBehaviour
             draggingItem.RotateItem();
         }
 
-        draggingItem.transform.SetParent(inventoryUI.transform);
+        draggingItem.transform.SetParent(GridUI.transform);
         draggingItem = null;
     }
 }
