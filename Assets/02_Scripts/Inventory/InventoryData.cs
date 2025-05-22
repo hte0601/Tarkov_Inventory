@@ -4,106 +4,59 @@ using UnityEngine;
 
 public class InventoryData
 {
-    private struct SlotData
+    private InventoryGridData[] gridDataArr;
+    private int gridNumber;
+
+    public InventoryData(RowColumn[] gridSizeArr)
     {
-        public bool isSlotEmpty;
-        public ItemUI itemInSlot;
-    }
+        gridNumber = gridSizeArr.Length;
+        gridDataArr = new InventoryGridData[gridNumber];
 
-    private RowColumn inventorySize;
-    private SlotData[,] slots;
-
-    public InventoryData(RowColumn inventorySize)
-    {
-        this.inventorySize = inventorySize;
-        slots = new SlotData[inventorySize.row, inventorySize.col];
-
-        for (int r = 0; r < inventorySize.row; r++)
+        for (int i = 0; i < gridNumber; i++)
         {
-            for (int c = 0; c < inventorySize.col; c++)
-            {
-                slots[r, c].isSlotEmpty = true;
-                slots[r, c].itemInSlot = null;
-            }
+            gridDataArr[i] = new InventoryGridData(gridSizeArr[i]);
         }
     }
 
 
-    // 범위 체크 함수
-    private bool IsSlotsEmpty(RowColumn index, RowColumn gridSize)
+    public bool CanAddItemAtIndex(int gridID, RowColumn gridIndex, ItemUI item)
     {
-        if (index.row < 0 || inventorySize.row <= index.row + gridSize.row - 1)
-        {
-            return false;
-        }
-
-        if (index.col < 0 || inventorySize.col <= index.col + gridSize.col - 1)
-        {
-            return false;
-        }
-
-        for (int r = 0; r < gridSize.row; r++)
-        {
-            for (int c = 0; c < gridSize.col; c++)
-            {
-                if (!slots[index.row + r, index.col + c].isSlotEmpty)
-                {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return gridDataArr[gridID].CanAddItemAtIndex(gridIndex, item);
     }
 
-
-    public bool CanAddItemAtIndex(ItemUI item, RowColumn index)
+    public bool AddItemAtIndex(int gridID, RowColumn gridIndex, ItemUI item)
     {
-        return IsSlotsEmpty(index, item.GridSize);
+        return gridDataArr[gridID].AddItemAtIndex(gridIndex, item);
     }
 
-    public bool AddItemAtIndex(ItemUI item, RowColumn index)
+    public void RemoveItem(int gridID, ItemUI item)
     {
-        if (!CanAddItemAtIndex(item, index))
-        {
-            return false;
-        }
-
-        for (int r = 0; r < item.GridSize.row; r++)
-        {
-            for (int c = 0; c < item.GridSize.col; c++)
-            {
-                slots[index.row + r, index.col + c].isSlotEmpty = false;
-                slots[index.row + r, index.col + c].itemInSlot = item;
-            }
-        }
-
-        return true;
-    }
-
-    public void RemoveItem(ItemUI item)
-    {
-        RowColumn index = item.Index;
-
-        for (int r = 0; r < item.GridSize.row; r++)
-        {
-            for (int c = 0; c < item.GridSize.col; c++)
-            {
-                slots[index.row + r, index.col + c].isSlotEmpty = true;
-                slots[index.row + r, index.col + c].itemInSlot = null;
-            }
-        }
+        gridDataArr[gridID].RemoveItem(item);
     }
 
 
     // 아이템이 들어갈 수 있는 자리가 있는지
-    public bool CanAddItemToInventory()
-    {
-        return false;
-    }
+    // private bool TryFind(ItemUI item, out int gridID, out RowColumn index, out bool isRotated)
+    // {
+    //     for (int i = 0; i < gridDataArr.Length; i++)
+    //     {
+    //         if (gridDataArr[i].CanAddItemToGrid(item, out index, out isRotated))
+    //         {
+    //             return true;
+    //         }
+    //     }
 
-    public bool AddItemToInventory()
-    {
-        return false;
-    }
+    //     return false;
+    // }
+
+    // public bool CanAddItemToInventory(ItemUI item)
+    // {
+    //     return TryFind(item, out _, out _, out _);
+    // }
+
+
+    // public bool AddItemToInventory()
+    // {
+    //     return false;
+    // }
 }

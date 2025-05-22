@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 160936333}
   - component: {fileID: 160936335}
   m_Layer: 5
-  m_Name: Stash UI
+  m_Name: 14x14 Grid UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -148,18 +148,18 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 160936331}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1440238722}
+  m_Father: {fileID: 928366457}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 30, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 896, y: 896}
-  m_Pivot: {x: 0, y: 0.5}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &160936333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,7 +210,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29a54395889fda54fa33e19c2e31c01a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSize:
+  _gridSize:
     row: 14
     col: 14
 --- !u!1001 &492609946
@@ -326,11 +326,27 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._size.width
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._size.height
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
       propertyPath: data._gridSize.width
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._itemSize.width
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
       propertyPath: data._gridSize.height
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._itemSize.height
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -537,6 +553,108 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &928366456
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 928366457}
+  - component: {fileID: 928366458}
+  m_Layer: 5
+  m_Name: Stash Inventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &928366457
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 928366456}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 160936332}
+  m_Father: {fileID: 1440238722}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 896, y: 896}
+  m_Pivot: {x: 0, y: 0.5}
+--- !u!114 &928366458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 928366456}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56e829fad4fd8c2458c90a69f989494a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridList:
+  - {fileID: 160936335}
+--- !u!1 &1057758923
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1057758924}
+  - component: {fileID: 1057758925}
+  m_Layer: 5
+  m_Name: Temp Inventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1057758924
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1057758923}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1563293342}
+  m_Father: {fileID: 1440238722}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: -30, y: 0}
+  m_SizeDelta: {x: 640, y: 640}
+  m_Pivot: {x: 1, y: 0.5}
+--- !u!114 &1057758925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1057758923}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56e829fad4fd8c2458c90a69f989494a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridList:
+  - {fileID: 1563293345}
 --- !u!1001 &1194311237
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -650,11 +768,27 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._size.width
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._size.height
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
       propertyPath: data._gridSize.width
       value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._itemSize.width
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
       propertyPath: data._gridSize.height
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._itemSize.height
       value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -766,8 +900,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 160936332}
-  - {fileID: 1563293342}
+  - {fileID: 928366457}
+  - {fileID: 1057758924}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -788,7 +922,7 @@ GameObject:
   - component: {fileID: 1563293343}
   - component: {fileID: 1563293345}
   m_Layer: 5
-  m_Name: Temp Inventory UI
+  m_Name: 10x10 Grid UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -801,7 +935,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1563293341}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -809,13 +943,13 @@ RectTransform:
   - {fileID: 1319381373}
   - {fileID: 492609947}
   - {fileID: 1194311238}
-  m_Father: {fileID: 1440238722}
+  m_Father: {fileID: 1057758924}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -30, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 640, y: 640}
-  m_Pivot: {x: 1, y: 0.5}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1563293343
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -866,7 +1000,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29a54395889fda54fa33e19c2e31c01a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSize:
+  _gridSize:
     row: 10
     col: 10
 --- !u!1 &1939109384
@@ -1098,11 +1232,27 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._size.width
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._size.height
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
       propertyPath: data._gridSize.width
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._itemSize.width
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
       propertyPath: data._gridSize.height
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7939925754909598341, guid: 2bac9e3ac8af96e42bce87f446a30786, type: 3}
+      propertyPath: data._itemSize.height
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []

@@ -5,18 +5,18 @@ using UnityEngine.EventSystems;
 
 public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
-    [SerializeField] private ItemData data;  //
+    [SerializeField] private ItemData data;  // 임시 SerializeField
 
     private InventoryGridUI gridUI;
     public RowColumn Index { get; private set; }
 
-    private RowColumn _gridSize;
+    private RowColumn _size;
     private Vector2 _topLeftSlotPoint;
     private bool _isRotated;
 
-    public RowColumn GridSize
+    public RowColumn Size
     {
-        get { return _gridSize; }
+        get { return _size; }
     }
 
     public Vector2 TopLeftSlotPoint
@@ -32,11 +32,11 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
             _isRotated = value;
             transform.rotation = value ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
 
-            _gridSize.row = value ? data.GridSize.width : data.GridSize.height;
-            _gridSize.col = value ? data.GridSize.height : data.GridSize.width;
+            _size.row = value ? data.ItemSize.width : data.ItemSize.height;
+            _size.col = value ? data.ItemSize.height : data.ItemSize.width;
 
-            _topLeftSlotPoint.x = -(_gridSize.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
-            _topLeftSlotPoint.y = (_gridSize.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+            _topLeftSlotPoint.x = -(_size.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+            _topLeftSlotPoint.y = (_size.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
         }
     }
 

@@ -1,60 +1,58 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-[Serializable]
-public struct RowColumn
-{
-    public int row;
-    public int col;
-}
-
-
 public class InventoryGridUI : UIBase, IDropHandler
 {
     public const int SLOT_SIZE = 64;
 
-    [SerializeField] private RowColumn gridSize;
-    private InventoryData data;
+    private IInventory inventory;
+    private int gridID;
+
+    [SerializeField] private RowColumn _gridSize;
+
+    public RowColumn GridSize
+    {
+        get { return _gridSize; }
+    }
+
 
     protected override void Awake()
     {
         base.Awake();
-
-        Initialize();
     }
 
-    public void Initialize()
+    public void Initialize(IInventory inventory, int gridID)
     {
-        data = new(gridSize);
+        this.inventory = inventory;
+        this.gridID = gridID;
+    }
+
+
+    public void AddItemAtIndex(RowColumn gridIndex, ItemUI item)
+    {
+        item.transform.SetParent(transform);
+        item.transform.localPosition = GridIndexToLocalPoint(gridIndex) - item.TopLeftSlotPoint;
+        item.UpdateLocation(this, gridIndex);
     }
 
 
     public void OnItemBeginDrag(ItemUI item)
     {
-        // 논리적으로는 불가능한 경우임
-        if (ItemDragManager.instance.IsDragging)
+        if (!ItemDragManager.instance.IsDragging)
         {
-            return;
+            inventory.HandleItemBeginDrag(gridID, item.Index, item);
         }
-
-        RemoveItemFromInventory(item);
-        ItemDragManager.instance.BeginItemDrag(item);
     }
 
     public void OnItemEndDrag(ItemUI item)
     {
-        if (!ItemDragManager.instance.IsDragging)
+        if (ItemDragManager.instance.IsDragging
+            && ReferenceEquals(item, ItemDragManager.instance.DraggingItem))
         {
-            return;
+            inventory.HandleItemCancleDrag(gridID, item.Index, item);
         }
-
-        // 레퍼런스 이퀄 체크?
-
-        ItemDragManager.instance.CancleItemDrag(this);
-        AddItemToInventory(item, item.Index);
     }
 
 
@@ -65,40 +63,15 @@ public class InventoryGridUI : UIBase, IDropHandler
             return;
         }
 
-        if (!ItemDragManager.instance.IsDragging)
+        if (ItemDragManager.instance.IsDragging)
         {
-            return;
+            // drop 이벤트 좌표로부터 index 계산
+            ItemUI item = ItemDragManager.instance.DraggingItem;
+            Vector2 screenPoint = eventData.position + item.TopLeftSlotPoint;
+            ScreenPointToGridIndex(screenPoint, out RowColumn eventIndex, false);
+
+            inventory.HandleItemDropOn(gridID, eventIndex, item);
         }
-
-        // drop 이벤트 좌표로부터 index 계산
-        ItemUI item = ItemDragManager.instance.GetDraggingItem();
-        Vector2 screenPoint = eventData.position + item.TopLeftSlotPoint;
-        ScreenPointToGridIndex(screenPoint, out RowColumn index, false);
-
-        if (data.CanAddItemAtIndex(item, index))
-        {
-            ItemDragManager.instance.DropItemToInventoryGrid(this);
-            AddItemToInventory(item, index);
-
-            Debug.LogFormat("({0}, {1}) 드래그 성공", index.row, index.col);
-        }
-        else
-        {
-            Debug.LogFormat("({0}, {1}) 드래그 실패", index.row, index.col);
-        }
-    }
-
-
-    private void AddItemToInventory(ItemUI item, RowColumn index)
-    {
-        item.transform.localPosition = GridIndexToLocalPoint(index) - item.TopLeftSlotPoint;
-        item.UpdateLocation(this, index);
-        data.AddItemAtIndex(item, index);
-    }
-
-    private void RemoveItemFromInventory(ItemUI item)
-    {
-        data.RemoveItem(item);
     }
 
 
@@ -118,8 +91,8 @@ public class InventoryGridUI : UIBase, IDropHandler
 
         if (indexClamping)
         {
-            gridIndex.row = Mathf.Clamp(gridIndex.row, 0, gridSize.row - 1);
-            gridIndex.col = Mathf.Clamp(gridIndex.col, 0, gridSize.col - 1);
+            gridIndex.row = Mathf.Clamp(gridIndex.row, 0, GridSize.row - 1);
+            gridIndex.col = Mathf.Clamp(gridIndex.col, 0, GridSize.col - 1);
         }
 
         return gridIndex;

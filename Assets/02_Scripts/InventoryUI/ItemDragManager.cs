@@ -9,20 +9,15 @@ public class ItemDragManager : MonoBehaviour
     private RectTransform canvasRectTransform;
     private Camera canvasWorldCamera;
 
-    private ItemUI draggingItem = null;
+    public ItemUI DraggingItem { get; private set; }
+    public bool IsDragging { get; private set; }
     private bool wasItemRotated;
-    private bool _isDragging = false;
-
-    public bool IsDragging
-    {
-        get { return _isDragging; }
-        private set { _isDragging = value; }
-    }
-
 
     private void Awake()
     {
         instance = this;
+        DraggingItem = null;
+        IsDragging = false;
 
         Canvas renderingCanvas = GetComponentInParent<Canvas>();
         if (renderingCanvas)
@@ -38,6 +33,7 @@ public class ItemDragManager : MonoBehaviour
 
     private void Update()
     {
+        // late update로
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
             canvasRectTransform, Input.mousePosition, canvasWorldCamera, out Vector2 localPoint))
         {
@@ -46,15 +42,10 @@ public class ItemDragManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R) && IsDragging)
         {
-            draggingItem.RotateItem();
+            DraggingItem.RotateItem();
         }
     }
 
-
-    public ItemUI GetDraggingItem()
-    {
-        return draggingItem;
-    }
 
     public void BeginItemDrag(ItemUI item)
     {
@@ -62,26 +53,26 @@ public class ItemDragManager : MonoBehaviour
         wasItemRotated = item.IsRotated;
         item.transform.SetParent(transform);
         item.transform.localPosition = Vector3.zero;
-        draggingItem = item;
+        DraggingItem = item;
     }
 
-    public void DropItemToInventoryGrid(InventoryGridUI GridUI)
+    public void DropItemToInventoryGrid(InventoryGridUI gridUI)
     {
         IsDragging = false;
-        draggingItem.transform.SetParent(GridUI.transform);
-        draggingItem = null;
+        DraggingItem.transform.SetParent(gridUI.transform);
+        DraggingItem = null;
     }
 
-    public void CancleItemDrag(InventoryGridUI GridUI)
+    public void CancleItemDrag(InventoryGridUI gridUI)
     {
         IsDragging = false;
 
-        if (draggingItem.IsRotated != wasItemRotated)
+        if (DraggingItem.IsRotated != wasItemRotated)
         {
-            draggingItem.RotateItem();
+            DraggingItem.RotateItem();
         }
 
-        draggingItem.transform.SetParent(GridUI.transform);
-        draggingItem = null;
+        DraggingItem.transform.SetParent(gridUI.transform);
+        DraggingItem = null;
     }
 }

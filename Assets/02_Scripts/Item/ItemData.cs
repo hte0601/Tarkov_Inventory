@@ -7,17 +7,17 @@ using UnityEngine;
 public class ItemData
 {
     [Serializable]
-    public struct ItemSize
+    public struct ItemSizeData
     {
         public int width;
         public int height;
     }
 
-    [SerializeField] private ItemSize _gridSize;  // 임시
+    [SerializeField] private ItemSizeData _itemSize;  // 임시 SerializeField
 
-    public ItemSize GridSize
+    public ItemSizeData ItemSize
     {
-        get { return _gridSize; }
-        private set { _gridSize = value; }
+        get { return _itemSize; }
+        private set { _itemSize = value; }
     }
 }
