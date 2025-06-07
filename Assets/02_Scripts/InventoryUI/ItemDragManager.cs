@@ -27,7 +27,7 @@ public class ItemDragManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Parent에서 Canvas 컴포넌트를 찾을 수 없음");
+            Debug.LogError("InParent에서 Canvas 컴포넌트를 찾을 수 없음");
         }
     }
 
@@ -59,7 +59,7 @@ public class ItemDragManager : MonoBehaviour
     public void DropItemToInventoryGrid(InventoryGridUI gridUI)
     {
         IsDragging = false;
-        DraggingItem.transform.SetParent(gridUI.transform);
+        DraggingItem.transform.SetParent(gridUI.ItemListTransform);
         DraggingItem = null;
     }
 
@@ -72,7 +72,7 @@ public class ItemDragManager : MonoBehaviour
             DraggingItem.RotateItem();
         }
 
-        DraggingItem.transform.SetParent(gridUI.transform);
+        DraggingItem.transform.SetParent(gridUI.ItemListTransform);
         DraggingItem = null;
     }
 }

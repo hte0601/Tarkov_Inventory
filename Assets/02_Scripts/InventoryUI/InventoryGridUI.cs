@@ -3,14 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class InventoryGridUI : UIBase, IDropHandler
+// IPointerDownHandler는 테스트용
+public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
 {
-    public const int SLOT_SIZE = 64;
+    [SerializeField] private GameObject itemListObj;
+    [SerializeField] private DropIndicatorUI dropIndicator;
+
+    public const int SLOT_SIZE = 63;
+    public const int PADDING = 1;
 
     private IInventory inventory;
     private int gridID;
+    [SerializeField] private RowColumn _gridSize;  // 인스펙터에서 값 설정
 
-    [SerializeField] private RowColumn _gridSize;
+    public Transform ItemListTransform { get; private set; }
 
     public RowColumn GridSize
     {
@@ -18,21 +24,18 @@ public class InventoryGridUI : UIBase, IDropHandler
     }
 
 
-    protected override void Awake()
-    {
-        base.Awake();
-    }
-
     public void Initialize(IInventory inventory, int gridID)
     {
         this.inventory = inventory;
         this.gridID = gridID;
+
+        ItemListTransform = itemListObj.transform;
     }
 
 
     public void AddItemAtIndex(RowColumn gridIndex, ItemUI item)
     {
-        item.transform.SetParent(transform);
+        item.transform.SetParent(ItemListTransform);
         item.transform.localPosition = GridIndexToLocalPoint(gridIndex) - item.TopLeftSlotPoint;
         item.UpdateLocation(this, gridIndex);
     }
@@ -86,8 +89,8 @@ public class InventoryGridUI : UIBase, IDropHandler
         localPoint.y += rectTransform.pivot.y * height;
         localPoint.y = height - localPoint.y;
 
-        gridIndex.row = Mathf.FloorToInt(localPoint.y / SLOT_SIZE);
-        gridIndex.col = Mathf.FloorToInt(localPoint.x / SLOT_SIZE);
+        gridIndex.row = Mathf.FloorToInt((localPoint.y - PADDING) / SLOT_SIZE);
+        gridIndex.col = Mathf.FloorToInt((localPoint.x - PADDING) / SLOT_SIZE);
 
         if (indexClamping)
         {
@@ -118,16 +121,17 @@ public class InventoryGridUI : UIBase, IDropHandler
     private Vector2 GridIndexToLocalPoint(RowColumn gridIndex)
     {
         Vector2 localPoint;
-        float width = rectTransform.rect.width;
-        float height = rectTransform.rect.height;
 
-        localPoint.x = (gridIndex.col + 0.5f) * SLOT_SIZE;
-        localPoint.y = (gridIndex.row + 0.5f) * SLOT_SIZE;
-        localPoint.y = height - localPoint.y;
-
-        localPoint.x -= rectTransform.pivot.x * width;
-        localPoint.y -= rectTransform.pivot.y * height;
+        localPoint.x = (gridIndex.col + 0.5f) * SLOT_SIZE + PADDING;
+        localPoint.y = (gridIndex.row + 0.5f) * SLOT_SIZE + PADDING;
+        localPoint.y *= -1f;
 
         return localPoint;
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        // ScreenPointToLocalPoint(eventData.position, out Vector2 localPoint);
+        // Debug.Log(localPoint);
     }
 }

@@ -46,9 +46,10 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
         base.Awake();
 
         // 임시 코드
-        if (!transform.parent.TryGetComponent(out gridUI))
+        gridUI = transform.GetComponentInParent<InventoryGridUI>();
+        if (!gridUI)
         {
-            Debug.LogError("부모 오브젝트에서 InventoryGridUI 컴포넌트를 찾을 수 없음");
+            Debug.LogError("InParent에서 InventoryGridUI 컴포넌트를 찾을 수 없음");
         }
 
         IsRotated = false;
