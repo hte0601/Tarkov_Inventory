@@ -3,14 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
-public struct RowColumn
-{
-    public int row;
-    public int col;
-}
-
-
 public class Inventory : MonoBehaviour, IInventory
 {
     [SerializeField] private List<InventoryGridUI> gridList;
