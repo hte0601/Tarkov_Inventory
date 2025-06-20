@@ -28,35 +28,45 @@ public class Inventory : MonoBehaviour, IInventory
     }
 
 
-    public void HandleItemBeginDrag(int gridID, RowColumn itemIndex, ItemUI item)
+    public void HandleItemDragBegin(int gridID, ItemUI item)
     {
         RemoveItemFromGrid(gridID, item);
         ItemDragManager.instance.BeginItemDrag(item);
     }
 
-    public void HandleItemCancleDrag(int gridID, RowColumn itemIndex, ItemUI item)
+    public void HandleItemDragCancle(int gridID, ItemUI item)
     {
         ItemDragManager.instance.CancleItemDrag(gridList[gridID]);
-        AddItemToGrid(gridID, itemIndex, item);
+        AddItemToGrid(gridID, item.Index, item);
     }
 
-    public void HandleItemDragOver(int gridID, RowColumn eventIndex, ItemUI item)
+    public void HandleItemDragOver(int gridID, RowColumn mouseIndex, RowColumn dragIndex, ItemUI item)
     {
-        //
-    }
+        // data.GetItemAtIndex(gridID, mouseIndex)
+        // 마우스 위치의 아이템이 내부 인벤토리를 가지는지 체크
 
-    public void HandleItemDropOn(int gridID, RowColumn eventIndex, ItemUI item)
-    {
-        if (data.CanAddItemAtIndex(gridID, eventIndex, item))
+        if (data.CanAddItemAtIndex(gridID, dragIndex, item))
         {
-            ItemDragManager.instance.DropItemToInventoryGrid(gridList[gridID]);
-            AddItemToGrid(gridID, eventIndex, item);
-
-            Debug.LogFormat("({0}, {1}) 드래그 성공", eventIndex.row, eventIndex.col);
+            gridList[gridID].SetIndicator(dragIndex, item.Size, true);
         }
         else
         {
-            Debug.LogFormat("({0}, {1}) 드래그 실패", eventIndex.row, eventIndex.col);
+            gridList[gridID].SetIndicator(dragIndex, item.Size, false);
+        }
+    }
+
+    public void HandleItemDrop(int gridID, RowColumn dropIndex, ItemUI item)
+    {
+        if (data.CanAddItemAtIndex(gridID, dropIndex, item))
+        {
+            ItemDragManager.instance.DropItemToInventoryGrid(gridList[gridID]);
+            AddItemToGrid(gridID, dropIndex, item);
+
+            Debug.LogFormat("({0}, {1}) 드래그 성공", dropIndex.row, dropIndex.col);
+        }
+        else
+        {
+            Debug.LogFormat("({0}, {1}) 드래그 실패", dropIndex.row, dropIndex.col);
         }
     }
 

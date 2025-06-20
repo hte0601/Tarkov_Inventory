@@ -59,7 +59,32 @@ public class InventoryGridData
 
     public bool CanAddItemAtIndex(RowColumn gridIndex, ItemUI item)
     {
-        return IsSlotsEmpty(gridIndex, item.Size);
+        RowColumn itemSize = item.Size;
+
+        if (gridIndex.row < 0 || gridSize.row <= gridIndex.row + itemSize.row - 1)
+        {
+            return false;
+        }
+
+        if (gridIndex.col < 0 || gridSize.col <= gridIndex.col + itemSize.col - 1)
+        {
+            return false;
+        }
+
+        for (int r = 0; r < itemSize.row; r++)
+        {
+            for (int c = 0; c < itemSize.col; c++)
+            {
+                ref SlotData slot = ref slots[gridIndex.row + r, gridIndex.col + c];
+
+                if (!slot.isSlotEmpty && !ReferenceEquals(slot.itemInSlot, item))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public bool AddItemAtIndex(RowColumn gridIndex, ItemUI item)

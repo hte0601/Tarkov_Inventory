@@ -26,10 +26,10 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
 
     public void Initialize(IInventory inventory, int gridID)
     {
+        ItemListTransform = itemListObj.transform;
+
         this.inventory = inventory;
         this.gridID = gridID;
-
-        ItemListTransform = itemListObj.transform;
     }
 
 
@@ -40,12 +40,18 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
         item.UpdateLocation(this, gridIndex);
     }
 
+    public void SetIndicator(RowColumn index, RowColumn size, bool canDrop)
+    {
+        dropIndicator.SetIndicator(index, size, canDrop);
+    }
 
+
+    // 아이템 Drag 관련 메소드 (ItemUI로부터 호출됨)
     public void OnItemBeginDrag(ItemUI item)
     {
         if (!ItemDragManager.instance.IsDragging)
         {
-            inventory.HandleItemBeginDrag(gridID, item.Index, item);
+            inventory.HandleItemDragBegin(gridID, item);
         }
     }
 
@@ -54,11 +60,12 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
         if (ItemDragManager.instance.IsDragging
             && ReferenceEquals(item, ItemDragManager.instance.DraggingItem))
         {
-            inventory.HandleItemCancleDrag(gridID, item.Index, item);
+            inventory.HandleItemDragCancle(gridID, item);
         }
     }
 
 
+    // IDropHandler 구현
     public void OnDrop(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left)
@@ -71,10 +78,40 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
             // drop 이벤트 좌표로부터 index 계산
             ItemUI item = ItemDragManager.instance.DraggingItem;
             Vector2 screenPoint = eventData.position + item.TopLeftSlotPoint;
-            ScreenPointToGridIndex(screenPoint, out RowColumn eventIndex, false);
+            ScreenPointToGridIndex(screenPoint, out RowColumn dropIndex, false);
 
-            inventory.HandleItemDropOn(gridID, eventIndex, item);
+            inventory.HandleItemDrop(gridID, dropIndex, item);
         }
+    }
+
+
+    // DragOver 관련 메소드 (ItemDragManager로부터 호출됨)
+    public void OnBeginDragOver(ItemUI draggingItem)
+    {
+        dropIndicator.BeginDragOver(draggingItem.Size);
+    }
+
+    public void OnEndDragOver()
+    {
+        dropIndicator.EndDragOver();
+    }
+
+    public void OnDragOver(Vector2 mousePosition, ItemUI draggingItem)
+    {
+        ScreenPointToGridIndex(mousePosition, out RowColumn mouseIndex, false);
+        RowColumn itemIndex;
+
+        if (draggingItem.Size.row == 1 && draggingItem.Size.col == 1)
+        {
+            itemIndex = mouseIndex;
+        }
+        else
+        {
+            Vector2 itemPosition = mousePosition + draggingItem.TopLeftSlotPoint;
+            ScreenPointToGridIndex(itemPosition, out itemIndex, false);
+        }
+
+        inventory.HandleItemDragOver(gridID, mouseIndex, itemIndex, draggingItem);
     }
 
 
@@ -128,6 +165,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
 
         return localPoint;
     }
+
 
     public void OnPointerDown(PointerEventData eventData)
     {

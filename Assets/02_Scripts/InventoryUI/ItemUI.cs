@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
@@ -10,6 +11,7 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
     private InventoryGridUI gridUI;
     public RowColumn Index { get; private set; }
 
+    private Image itemImage;
     private RowColumn _size;
     private Vector2 _topLeftSlotPoint;
     private bool _isRotated;
@@ -45,6 +47,11 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
     {
         base.Awake();
 
+        if (!TryGetComponent(out itemImage))
+        {
+            Debug.LogError("Image 컴포넌트를 찾을 수 없음");
+        }
+
         // 임시 코드
         gridUI = transform.GetComponentInParent<InventoryGridUI>();
         if (!gridUI)
@@ -57,10 +64,10 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
     }
 
 
-    // public void InitUI(ItemData data)
-    // {
-    //     this.data = data;
-    // }
+    public void SetItemImageAlpha(byte alpha)
+    {
+        itemImage.color = new Color32(255, 255, 255, alpha);
+    }
 
 
     public void RotateItem()
