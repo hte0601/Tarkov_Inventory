@@ -1,4 +1,4 @@
-public interface IInventory
+public interface IInventoryUI
 {
     public void HandleItemDragBegin(int gridID, ItemUI item);
     public void HandleItemDragCancle(int gridID, ItemUI item);

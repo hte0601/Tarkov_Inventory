@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Inventory : MonoBehaviour, IInventory
+public class InventoryUI : MonoBehaviour, IInventoryUI
 {
     [SerializeField] private List<InventoryGridUI> gridList;
     private InventoryData data;

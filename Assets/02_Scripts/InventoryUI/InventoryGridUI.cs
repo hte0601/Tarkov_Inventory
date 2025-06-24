@@ -12,7 +12,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     public const int SLOT_SIZE = 63;
     public const int PADDING = 1;
 
-    private IInventory inventory;
+    private IInventoryUI inventoryUI;
     private int gridID;
     [SerializeField] private RowColumn _gridSize;  // 인스펙터에서 값 설정
 
@@ -24,11 +24,11 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     }
 
 
-    public void Initialize(IInventory inventory, int gridID)
+    public void Initialize(IInventoryUI inventoryUI, int gridID)
     {
         ItemListTransform = itemListObj.transform;
 
-        this.inventory = inventory;
+        this.inventoryUI = inventoryUI;
         this.gridID = gridID;
     }
 
@@ -51,7 +51,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     {
         if (!ItemDragManager.instance.IsDragging)
         {
-            inventory.HandleItemDragBegin(gridID, item);
+            inventoryUI.HandleItemDragBegin(gridID, item);
         }
     }
 
@@ -60,7 +60,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
         if (ItemDragManager.instance.IsDragging
             && ReferenceEquals(item, ItemDragManager.instance.DraggingItem))
         {
-            inventory.HandleItemDragCancle(gridID, item);
+            inventoryUI.HandleItemDragCancle(gridID, item);
         }
     }
 
@@ -80,7 +80,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
             Vector2 screenPoint = eventData.position + item.TopLeftSlotPoint;
             ScreenPointToGridIndex(screenPoint, out RowColumn dropIndex, false);
 
-            inventory.HandleItemDrop(gridID, dropIndex, item);
+            inventoryUI.HandleItemDrop(gridID, dropIndex, item);
         }
     }
 
@@ -111,7 +111,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
             ScreenPointToGridIndex(itemPosition, out itemIndex, false);
         }
 
-        inventory.HandleItemDragOver(gridID, mouseIndex, itemIndex, draggingItem);
+        inventoryUI.HandleItemDragOver(gridID, mouseIndex, itemIndex, draggingItem);
     }
 
 
