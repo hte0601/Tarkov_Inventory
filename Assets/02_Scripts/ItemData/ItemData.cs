@@ -6,18 +6,12 @@ using UnityEngine;
 [Serializable]
 public class ItemData
 {
-    [Serializable]
-    public struct ItemSizeData
-    {
-        public int width;
-        public int height;
-    }
+    public ItemSizeData ItemSize { get; private set; }
+    public ItemCategoryData Category { get; private set; }
 
-    [SerializeField] private ItemSizeData _itemSize;  // 임시 SerializeField
-
-    public ItemSizeData ItemSize
+    public ItemData(ItemInfo itemInfo)
     {
-        get { return _itemSize; }
-        private set { _itemSize = value; }
+        ItemSize = itemInfo.ItemSize;
+        Category = itemInfo.Category;
     }
 }
