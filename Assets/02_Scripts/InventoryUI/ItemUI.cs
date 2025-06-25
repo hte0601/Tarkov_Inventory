@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
-    [SerializeField] private ItemData data;  // 임시 SerializeField
+    [SerializeField] private ItemID itemID;
+    public ItemData Data { get; private set; }
 
     private InventoryGridUI gridUI;
     public RowColumn Index { get; private set; }
@@ -34,8 +35,8 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
             _isRotated = value;
             transform.rotation = value ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
 
-            _size.row = value ? data.ItemSize.width : data.ItemSize.height;
-            _size.col = value ? data.ItemSize.height : data.ItemSize.width;
+            _size.row = value ? Data.ItemSize.width : Data.ItemSize.height;
+            _size.col = value ? Data.ItemSize.height : Data.ItemSize.width;
 
             _topLeftSlotPoint.x = -(_size.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
             _topLeftSlotPoint.y = (_size.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
@@ -53,6 +54,8 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
         }
 
         // 임시 코드
+        Data = ItemFactory.CreateItemData(itemID);
+
         gridUI = transform.GetComponentInParent<InventoryGridUI>();
         if (!gridUI)
         {
