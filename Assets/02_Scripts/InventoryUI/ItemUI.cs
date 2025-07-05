@@ -9,37 +9,27 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
     [SerializeField] private ItemID itemID;
     public ItemData Data { get; private set; }
 
-    private InventoryGridUI gridUI;
-    public RowColumn Index { get; private set; }
+    public InventoryGridUI gridUI;
 
     private Image itemImage;
-    private RowColumn _size;
-    private Vector2 _topLeftSlotPoint;
-    private bool _isRotated;
+    public RowColumn UISize { get; private set; }
+    public Vector2 TopLeftSlotPoint { get; private set; }
+    private bool _isUIRotated;
 
-    public RowColumn Size
+    public bool IsUIRotated
     {
-        get { return _size; }
-    }
-
-    public Vector2 TopLeftSlotPoint
-    {
-        get { return _topLeftSlotPoint; }
-    }
-
-    public bool IsRotated
-    {
-        get { return _isRotated; }
-        private set
+        get { return _isUIRotated; }
+        set
         {
-            _isRotated = value;
+            _isUIRotated = value;
+
             transform.rotation = value ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+            UISize = Data.GetItemSize(value);
 
-            _size.row = value ? Data.ItemSize.width : Data.ItemSize.height;
-            _size.col = value ? Data.ItemSize.height : Data.ItemSize.width;
-
-            _topLeftSlotPoint.x = -(_size.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
-            _topLeftSlotPoint.y = (_size.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+            Vector2 point;
+            point.x = -(UISize.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+            point.y = (UISize.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+            TopLeftSlotPoint = point;
         }
     }
 
@@ -62,39 +52,35 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
             Debug.LogError("InParent에서 InventoryGridUI 컴포넌트를 찾을 수 없음");
         }
 
-        IsRotated = false;
+        IsUIRotated = false;
         //
     }
 
 
-    public void SetItemImageAlpha(byte alpha)
+    public void SetUITransparent(bool isTransparent)
     {
-        itemImage.color = new Color32(255, 255, 255, alpha);
+        if (isTransparent)
+        {
+            itemImage.color = new Color32(255, 255, 255, 224);
+        }
+        else
+        {
+            itemImage.color = new Color32(255, 255, 255, 255);
+        }
+    }
+
+    public void RotateItemUI()
+    {
+        IsUIRotated = !IsUIRotated;
     }
 
 
-    public void RotateItem()
-    {
-        IsRotated = !IsRotated;
-    }
-
-    public void UpdateLocation(InventoryGridUI gridUI, RowColumn index)
-    {
-        this.gridUI = gridUI;
-        Index = index;
-    }
-
-
+    // EventSystem Handler 구현
     public void OnDrag(PointerEventData eventData) { }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left)
-        {
-            return;
-        }
-
-        if (gridUI)
+        if (eventData.button == PointerEventData.InputButton.Left && gridUI != null)
         {
             gridUI.OnItemBeginDrag(this);
         }
@@ -102,14 +88,11 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left)
+        if (eventData.button == PointerEventData.InputButton.Left
+            && ItemDragManager.instance.IsDragging
+            && ReferenceEquals(this, ItemDragManager.instance.DraggingItem))
         {
-            return;
-        }
-
-        if (gridUI)
-        {
-            gridUI.OnItemEndDrag(this);
+            ItemDragManager.instance.CancelItemDrag();
         }
     }
 }

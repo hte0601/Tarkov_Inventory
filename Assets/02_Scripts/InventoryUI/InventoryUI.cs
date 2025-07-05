@@ -16,51 +16,43 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
         }
 
         // 임시 코드
-        RowColumn[] gridSizeArr = new RowColumn[gridList.Count];
+        RowColumn[] inventorySize = new RowColumn[gridList.Count];
 
         for (int i = 0; i < gridList.Count; i++)
         {
-            gridSizeArr[i] = gridList[i].GridSize;
+            inventorySize[i] = gridList[i].GridSize;
         }
 
-        data = new(gridSizeArr);
+        data = new(inventorySize);
+        InventoryUIManager.OpenUI(data, this);
         //
     }
 
 
-    public void HandleItemDragBegin(int gridID, ItemUI item)
+    public void HandleItemDragBegin(int gridID, ItemUI itemUI)
     {
-        RemoveItemFromGrid(gridID, item);
-        ItemDragManager.instance.BeginItemDrag(item);
+        ItemLocation fromLocation = new(data, gridID, itemUI.Data.GridIndex, itemUI.Data.IsRotated);
+        ItemDragManager.instance.BeginItemDrag(fromLocation, itemUI);
     }
 
-    public void HandleItemDragCancle(int gridID, ItemUI item)
-    {
-        ItemDragManager.instance.CancleItemDrag(gridList[gridID]);
-        AddItemToGrid(gridID, item.Index, item);
-    }
-
-    public void HandleItemDragOver(int gridID, RowColumn mouseIndex, RowColumn dragIndex, ItemUI item)
+    public void HandleItemDragOver(int gridID, RowColumn mouseIndex, RowColumn dragIndex, ItemUI itemUI)
     {
         // data.GetItemAtIndex(gridID, mouseIndex)
         // 마우스 위치의 아이템이 내부 인벤토리를 가지는지 체크
 
-        if (data.CanAddItemAtIndex(gridID, dragIndex, item))
-        {
-            gridList[gridID].SetIndicator(dragIndex, item.Size, true);
-        }
-        else
-        {
-            gridList[gridID].SetIndicator(dragIndex, item.Size, false);
-        }
+        ItemLocation dragLocation = new(data, gridID, dragIndex, itemUI.IsUIRotated);
+        bool canDrop = data.CanAddItemAtLocation(dragLocation, itemUI.Data);
+
+        gridList[gridID].SetIndicator(dragIndex, itemUI.UISize, canDrop);
     }
 
-    public void HandleItemDrop(int gridID, RowColumn dropIndex, ItemUI item)
+    public void HandleItemDrop(int gridID, RowColumn mouseIndex, RowColumn dropIndex, ItemUI itemUI)
     {
-        if (data.CanAddItemAtIndex(gridID, dropIndex, item))
+        ItemLocation dropLocation = new(data, gridID, dropIndex, itemUI.IsUIRotated);
+
+        if (data.CanAddItemAtLocation(dropLocation, itemUI.Data))
         {
-            ItemDragManager.instance.DropItemToInventoryGrid(gridList[gridID]);
-            AddItemToGrid(gridID, dropIndex, item);
+            ItemDragManager.instance.DropItem(dropLocation);
 
             Debug.LogFormat("({0}, {1}) 드래그 성공", dropIndex.row, dropIndex.col);
         }
@@ -71,14 +63,8 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
     }
 
 
-    private void AddItemToGrid(int gridID, RowColumn gridIndex, ItemUI item)
+    public void PlaceItemUIAtLocation(ItemLocation location, ItemUI item)
     {
-        gridList[gridID].AddItemAtIndex(gridIndex, item);
-        data.AddItemAtIndex(gridID, gridIndex, item);
-    }
-
-    private void RemoveItemFromGrid(int gridID, ItemUI item)
-    {
-        data.RemoveItem(gridID, item);
+        gridList[location.gridID].PlaceItemUIAtIndex(location.index, location.isRotated, item);
     }
 }

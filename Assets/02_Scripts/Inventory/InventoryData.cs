@@ -4,32 +4,38 @@ using UnityEngine;
 
 public class InventoryData
 {
+    public RowColumn[] InventorySize { get; private set; }
+    public int GridCount { get; private set; }
     private InventoryGridData[] gridDataArr;
-    private int gridNumber;
+    public InventorySaveData SaveData { get; private set; }
 
-    public InventoryData(RowColumn[] gridSizeArr)
+    public InventoryData(RowColumn[] inventorySize)
     {
-        gridNumber = gridSizeArr.Length;
-        gridDataArr = new InventoryGridData[gridNumber];
+        InventorySize = inventorySize;
+        GridCount = inventorySize.Length;
 
-        for (int i = 0; i < gridNumber; i++)
+        gridDataArr = new InventoryGridData[GridCount];
+
+        for (int i = 0; i < GridCount; i++)
         {
-            gridDataArr[i] = new InventoryGridData(gridSizeArr[i]);
+            gridDataArr[i] = new(inventorySize[i]);
         }
+
+        SaveData = new();
     }
 
 
-    public bool CanAddItemAtIndex(int gridID, RowColumn gridIndex, ItemUI item)
+    public bool CanAddItemAtLocation(ItemLocation location, ItemData item)
     {
-        return gridDataArr[gridID].CanAddItemAtIndex(gridIndex, item);
+        return gridDataArr[location.gridID].CanAddItemAtIndex(location.index, location.isRotated, item);
     }
 
-    public bool AddItemAtIndex(int gridID, RowColumn gridIndex, ItemUI item)
+    public bool AddItemAtLocation(ItemLocation location, ItemData item)
     {
-        return gridDataArr[gridID].AddItemAtIndex(gridIndex, item);
+        return gridDataArr[location.gridID].AddItemAtIndex(location.index, location.isRotated, item);
     }
 
-    public void RemoveItem(int gridID, ItemUI item)
+    public void RemoveItem(int gridID, ItemData item)
     {
         gridDataArr[gridID].RemoveItem(item);
     }

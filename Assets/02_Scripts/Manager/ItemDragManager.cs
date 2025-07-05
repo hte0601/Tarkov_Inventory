@@ -8,12 +8,13 @@ public class ItemDragManager : MonoBehaviour
 
     private RectTransform canvasRectTransform;
     private Camera canvasWorldCamera;
+
     private InventoryRaycaster inventoryRaycaster;
     private InventoryGridUI prevGridUI;
 
+    private ItemLocation fromLocation;
     public ItemUI DraggingItem { get; private set; }
     public bool IsDragging { get; private set; }
-    private bool wasItemRotated;
 
     private void Awake()
     {
@@ -54,7 +55,7 @@ public class ItemDragManager : MonoBehaviour
         // 아이템 회전 입력 처리
         if (Input.GetKeyDown(KeyCode.R))
         {
-            DraggingItem.RotateItem();
+            DraggingItem.RotateItemUI();
         }
 
         // 아이템 DragOver 처리
@@ -83,45 +84,57 @@ public class ItemDragManager : MonoBehaviour
     }
 
 
-    public void BeginItemDrag(ItemUI item)
+    private void MoveItem(ItemLocation fromLocation, ItemLocation toLocation, ItemUI itemUI)
+    {
+        // 데이터 처리
+        if (fromLocation != toLocation)
+        {
+            fromLocation.inventoryData.RemoveItem(fromLocation.gridID, itemUI.Data);
+            toLocation.inventoryData.AddItemAtLocation(toLocation, itemUI.Data);
+        }
+
+        // UI 처리
+        if (InventoryUIManager.TryGetUI(toLocation.inventoryData, out InventoryUI inventoryUI))
+        {
+            inventoryUI.PlaceItemUIAtLocation(toLocation, itemUI);
+        }
+        else
+        {
+            // 오브젝트 풀에 ItemUI 반환
+        }
+    }
+
+
+    public void BeginItemDrag(ItemLocation fromLocation, ItemUI itemUI)
     {
         IsDragging = true;
-        wasItemRotated = item.IsRotated;
-        item.transform.SetParent(transform);
-        item.transform.localPosition = Vector3.zero;
-        item.SetItemImageAlpha(224);
-        DraggingItem = item;
+        DraggingItem = itemUI;
+        this.fromLocation = fromLocation;
+
+        itemUI.transform.SetParent(transform);
+        itemUI.transform.localPosition = Vector3.zero;
+        itemUI.SetUITransparent(true);
 
         inventoryRaycaster.InitRaycaster();
         prevGridUI = null;
     }
 
-    public void DropItemToInventoryGrid(InventoryGridUI gridUI)
-    {
-        IsDragging = false;
-        DraggingItem.SetItemImageAlpha(255);
-        DraggingItem.transform.SetParent(gridUI.ItemListTransform);
-        DraggingItem = null;
-
-        gridUI.OnEndDragOver();  // 인벤토리가 있는 아이템 아이콘에 드래그 할 때는 다를 듯
-    }
-
-    public void CancleItemDrag(InventoryGridUI gridUI)
+    public void DropItem(ItemLocation toLocation)
     {
         IsDragging = false;
 
-        if (DraggingItem.IsRotated != wasItemRotated)
-        {
-            DraggingItem.RotateItem();
-        }
-
-        DraggingItem.SetItemImageAlpha(255);
-        DraggingItem.transform.SetParent(gridUI.ItemListTransform);
+        DraggingItem.SetUITransparent(false);
+        MoveItem(fromLocation, toLocation, DraggingItem);
         DraggingItem = null;
 
         if (prevGridUI != null)
         {
             prevGridUI.OnEndDragOver();
         }
+    }
+
+    public void CancelItemDrag()
+    {
+        DropItem(fromLocation);
     }
 }
