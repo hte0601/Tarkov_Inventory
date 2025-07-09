@@ -57,7 +57,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     }
 
 
-    // IDropHandler 구현
+    // IDropHandler 구현 (ItemUI로부터 호출될 수 있음)
     public void OnDrop(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Left && ItemDragManager.instance.IsDragging)

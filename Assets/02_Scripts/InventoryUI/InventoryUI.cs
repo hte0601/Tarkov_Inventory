@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class InventoryUI : MonoBehaviour, IInventoryUI
 {
+    [SerializeField] private ItemUI containableItemUI;  // 임시
     [SerializeField] private List<InventoryGridUI> gridList;
     private InventoryData data;
 
@@ -14,18 +15,36 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
         {
             gridList[i].Initialize(this, i);
         }
+    }
 
+    private void Start()
+    {
         // 임시 코드
-        RowColumn[] inventorySize = new RowColumn[gridList.Count];
-
-        for (int i = 0; i < gridList.Count; i++)
+        if (containableItemUI != null
+            && containableItemUI.Data is IContainableItem containableItem)
         {
-            inventorySize[i] = gridList[i].GridSize;
+            data = containableItem.InnerInventoryData;
+        }
+        else
+        {
+            RowColumn[] inventorySize = new RowColumn[gridList.Count];
+
+            for (int i = 0; i < gridList.Count; i++)
+            {
+                inventorySize[i] = gridList[i].GridSize;
+            }
+
+            data = new(inventorySize);
         }
 
-        data = new(inventorySize);
         InventoryUIManager.OpenUI(data, this);
         //
+    }
+
+
+    public void PlaceItemUIAtLocation(ItemLocation location, ItemUI item)
+    {
+        gridList[location.gridID].PlaceItemUIAtIndex(location.index, location.isRotated, item);
     }
 
 
@@ -37,34 +56,62 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
 
     public void HandleItemDragOver(int gridID, RowColumn mouseIndex, RowColumn dragIndex, ItemUI itemUI)
     {
-        // data.GetItemAtIndex(gridID, mouseIndex)
-        // 마우스 위치의 아이템이 내부 인벤토리를 가지는지 체크
+        bool canDrop;
 
-        ItemLocation dragLocation = new(data, gridID, dragIndex, itemUI.IsUIRotated);
-        bool canDrop = data.CanAddItemAtLocation(dragLocation, itemUI.Data);
+        if (data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
+            && !ReferenceEquals(itemData, itemUI.Data))
+        {
+            if (itemData is IContainableItem containableItem)
+            {
+                canDrop = containableItem.InnerInventoryData.CanAddItemToInventory(itemUI.Data);
+            }
+            else
+            {
+                // 스택이 되는 아이템인 경우 따로 처리해야 함
+                canDrop = false;
+            }
+        }
+        else
+        {
+            ItemLocation dragLocation = new(data, gridID, dragIndex, itemUI.IsUIRotated);
+            canDrop = data.CanAddItemAtLocation(dragLocation, itemUI.Data);
+        }
 
         gridList[gridID].SetIndicator(dragIndex, itemUI.UISize, canDrop);
     }
 
     public void HandleItemDrop(int gridID, RowColumn mouseIndex, RowColumn dropIndex, ItemUI itemUI)
     {
-        ItemLocation dropLocation = new(data, gridID, dropIndex, itemUI.IsUIRotated);
-
-        if (data.CanAddItemAtLocation(dropLocation, itemUI.Data))
+        if (data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
+            && !ReferenceEquals(itemData, itemUI.Data))
         {
-            ItemDragManager.instance.DropItem(dropLocation);
+            if (itemData is IContainableItem containableItem
+                && containableItem.InnerInventoryData.TryFindLocationToAddItem(itemUI.Data, out ItemLocation location))
+            {
+                ItemDragManager.instance.DropItem(location);
 
-            Debug.LogFormat("({0}, {1}) 드래그 성공", dropIndex.row, dropIndex.col);
+                Debug.LogFormat("({0}, {1}) 드래그 성공", mouseIndex.row, mouseIndex.col);
+            }
+            else
+            {
+                // 스택이 되는 아이템인 경우 따로 처리해야 함
+                Debug.LogFormat("({0}, {1}) 드래그 실패", mouseIndex.row, mouseIndex.col);
+            }
         }
         else
         {
-            Debug.LogFormat("({0}, {1}) 드래그 실패", dropIndex.row, dropIndex.col);
+            ItemLocation dropLocation = new(data, gridID, dropIndex, itemUI.IsUIRotated);
+
+            if (data.CanAddItemAtLocation(dropLocation, itemUI.Data))
+            {
+                ItemDragManager.instance.DropItem(dropLocation);
+
+                Debug.LogFormat("({0}, {1}) 드래그 성공", dropIndex.row, dropIndex.col);
+            }
+            else
+            {
+                Debug.LogFormat("({0}, {1}) 드래그 실패", dropIndex.row, dropIndex.col);
+            }
         }
-    }
-
-
-    public void PlaceItemUIAtLocation(ItemLocation location, ItemUI item)
-    {
-        gridList[location.gridID].PlaceItemUIAtIndex(location.index, location.isRotated, item);
     }
 }

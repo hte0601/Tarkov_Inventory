@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
+public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, IDropHandler
 {
     [SerializeField] private ItemID itemID;
     public ItemData Data { get; private set; }
@@ -93,6 +93,14 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler
             && ReferenceEquals(this, ItemDragManager.instance.DraggingItem))
         {
             ItemDragManager.instance.CancelItemDrag();
+        }
+    }
+
+    public void OnDrop(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left && gridUI != null)
+        {
+            gridUI.OnDrop(eventData);
         }
     }
 }

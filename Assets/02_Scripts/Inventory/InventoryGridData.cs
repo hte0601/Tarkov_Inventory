@@ -29,6 +29,21 @@ public class InventoryGridData
     }
 
 
+    public bool TryGetItemAtIndex(RowColumn index, out ItemData item)
+    {
+        if (!slots[index.row, index.col].isSlotEmpty)
+        {
+            item = slots[index.row, index.col].itemInSlot;
+            return true;
+        }
+        else
+        {
+            item = null;
+            return false;
+        }
+    }
+
+
     public bool CanAddItemAtIndex(RowColumn index, bool isRotated, ItemData item)
     {
         RowColumn itemSize = item.GetItemSize(isRotated);
@@ -98,14 +113,32 @@ public class InventoryGridData
     }
 
 
-    // 아이템이 들어갈 수 있는 자리가 있는지
-    public bool CanAddItemToGrid()
+    public bool TryFindIndexToAddItem(ItemData item, out RowColumn index, out bool isRotated)
     {
-        return false;
-    }
+        bool isItemSquare = item.ItemSize.row == item.ItemSize.col;
 
-    public bool AddItemToGrid()
-    {
+        for (int r = 0; r < gridSize.row; r++)
+        {
+            for (int c = 0; c < gridSize.col; c++)
+            {
+                index = new(r, c);
+
+                if (CanAddItemAtIndex(index, false, item))
+                {
+                    isRotated = false;
+                    return true;
+                }
+
+                if (!isItemSquare && CanAddItemAtIndex(index, true, item))
+                {
+                    isRotated = true;
+                    return true;
+                }
+            }
+        }
+
+        index = new(0, 0);
+        isRotated = false;
         return false;
     }
 }

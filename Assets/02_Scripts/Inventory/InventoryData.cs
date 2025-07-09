@@ -25,6 +25,12 @@ public class InventoryData
     }
 
 
+    public bool TryGetItemAtIndex(int gridID, RowColumn index, out ItemData item)
+    {
+        return gridDataArr[gridID].TryGetItemAtIndex(index, out item);
+    }
+
+
     public bool CanAddItemAtLocation(ItemLocation location, ItemData item)
     {
         return gridDataArr[location.gridID].CanAddItemAtIndex(location.index, location.isRotated, item);
@@ -41,28 +47,24 @@ public class InventoryData
     }
 
 
-    // 아이템이 들어갈 수 있는 자리가 있는지
-    // private bool TryFind(ItemUI item, out int gridID, out RowColumn index, out bool isRotated)
-    // {
-    //     for (int i = 0; i < gridDataArr.Length; i++)
-    //     {
-    //         if (gridDataArr[i].CanAddItemToGrid(item, out index, out isRotated))
-    //         {
-    //             return true;
-    //         }
-    //     }
+    // 인벤토리에 아이템을 넣을 수 있는 자리가 있는지 확인
+    public bool TryFindLocationToAddItem(ItemData item, out ItemLocation location)
+    {
+        for (int i = 0; i < GridCount; i++)
+        {
+            if (gridDataArr[i].TryFindIndexToAddItem(item, out RowColumn index, out bool isRotated))
+            {
+                location = new(this, i, index, isRotated);
+                return true;
+            }
+        }
 
-    //     return false;
-    // }
+        location = new();
+        return false;
+    }
 
-    // public bool CanAddItemToInventory(ItemUI item)
-    // {
-    //     return TryFind(item, out _, out _, out _);
-    // }
-
-
-    // public bool AddItemToInventory()
-    // {
-    //     return false;
-    // }
+    public bool CanAddItemToInventory(ItemData item)
+    {
+        return TryFindLocationToAddItem(item, out _);
+    }
 }
