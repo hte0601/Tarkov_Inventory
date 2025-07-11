@@ -2,8 +2,8 @@ public class BackpackItemInfo : GearItemInfo
 {
     public RowColumn[] InventorySize { get; private set; }
 
-    public BackpackItemInfo(ItemSizeData itemSize, ItemCategoryData category, RowColumn[] inventorySize)
-        : base(itemSize, category)
+    public BackpackItemInfo(ItemID itemID, string iconPath, ItemCategoryData category, ItemSizeData itemSize, RowColumn[] inventorySize)
+        : base(itemID, iconPath, category, itemSize)
     {
         InventorySize = inventorySize;
     }

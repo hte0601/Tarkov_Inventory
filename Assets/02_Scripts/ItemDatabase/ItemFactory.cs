@@ -2,12 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ItemFactory : MonoBehaviour
+public static class ItemFactory
 {
     public static ItemData CreateItemData(ItemID itemID)
     {
+        if (!ItemDatabase.TryGetItemInfo(itemID, out ItemInfo itemInfo))
+        {
+            return null;
+        }
+
         ItemData itemData = null;
-        ItemInfo itemInfo = ItemDatabase.info[itemID];
 
         if (itemInfo.Category.Matches(ItemMainCategory1.BarterItems)
             || itemInfo.Category.Matches(ItemMainCategory1.InfoItems))

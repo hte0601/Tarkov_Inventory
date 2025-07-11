@@ -1,17 +1,28 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
 public class ItemData
 {
-    protected ItemSizeData itemSizeData;
-    [SerializeField] private bool _isRotated;  // 값 저장 필요
+    public ItemID ID { get; private set; }  // 저장 o
+    public string IconPath { get; private set; }  // static
+    public ItemCategoryData Category { get; private set; }  // static
 
-    public ItemCategoryData Category { get; protected set; }
-    public RowColumn ItemSize { get; protected set; }
-    public RowColumn GridIndex { get; set; }
+    private ItemSizeData itemBaseSize;  // static
+    private ItemSizeData _itemCurrentSize;  // 저장 ?
+    public RowColumn ItemSize { get; protected set; }  // 저장 x
+    public RowColumn GridIndex { get; set; }  // 저장 x
+    private bool _isRotated;  // 저장 o
+
+    public ItemSizeData ItemCurrentSize
+    {
+        get { return _itemCurrentSize; }
+        protected set
+        {
+            _itemCurrentSize = value;
+            ItemSize = GetItemSize(IsRotated);
+        }
+    }
 
     public bool IsRotated
     {
@@ -19,19 +30,19 @@ public class ItemData
         set
         {
             _isRotated = value;
-
-            RowColumn itemSize;
-            itemSize.row = value ? itemSizeData.width : itemSizeData.height;
-            itemSize.col = value ? itemSizeData.height : itemSizeData.width;
-
-            ItemSize = itemSize;
+            ItemSize = GetItemSize(value);
         }
     }
 
+
     public ItemData(ItemInfo itemInfo)
     {
-        itemSizeData = itemInfo.ItemSize;
+        ID = itemInfo.ID;
+        IconPath = itemInfo.IconPath;
         Category = itemInfo.Category;
+        itemBaseSize = itemInfo.ItemSize;
+
+        ItemCurrentSize = itemBaseSize;
         GridIndex = new(0, 0);
         IsRotated = false;
     }
@@ -40,8 +51,8 @@ public class ItemData
     public RowColumn GetItemSize(bool isRotated)
     {
         RowColumn itemSize;
-        itemSize.row = isRotated ? itemSizeData.width : itemSizeData.height;
-        itemSize.col = isRotated ? itemSizeData.height : itemSizeData.width;
+        itemSize.row = isRotated ? ItemCurrentSize.width : ItemCurrentSize.height;
+        itemSize.col = isRotated ? ItemCurrentSize.height : ItemCurrentSize.width;
 
         return itemSize;
     }

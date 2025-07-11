@@ -1,11 +1,15 @@
 public class ItemInfo
 {
-    public ItemSizeData ItemSize { get; private set; }
+    public ItemID ID { get; private set; }
+    public string IconPath { get; private set; }
     public ItemCategoryData Category { get; private set; }
+    public ItemSizeData ItemSize { get; private set; }
 
-    public ItemInfo(ItemSizeData itemSize, ItemCategoryData category)
+    public ItemInfo(ItemID itemID, string iconPath, ItemCategoryData category, ItemSizeData itemSize)
     {
-        ItemSize = itemSize;
+        ID = itemID;
+        IconPath = iconPath;
         Category = category;
+        ItemSize = itemSize;
     }
 }

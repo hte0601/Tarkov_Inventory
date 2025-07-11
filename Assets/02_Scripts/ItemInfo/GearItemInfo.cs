@@ -1,4 +1,5 @@
 public class GearItemInfo : ItemInfo
 {
-    public GearItemInfo(ItemSizeData itemSize, ItemCategoryData category) : base(itemSize, category) { }
+    public GearItemInfo(ItemID itemID, string iconPath, ItemCategoryData category, ItemSizeData itemSize)
+        : base(itemID, iconPath, category, itemSize) { }
 }
