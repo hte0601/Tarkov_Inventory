@@ -5,40 +5,40 @@ using UnityEngine;
 
 public class InventoryUI : MonoBehaviour, IInventoryUI
 {
-    [SerializeField] private ItemUI containableItemUI;  // 임시
     [SerializeField] private List<InventoryGridUI> gridList;
-    private InventoryData data;
+    public RowColumn[] inventorySize;
+
+    public InventoryData Data { get; private set; }
 
     private void Awake()
     {
-        for (int i = 0; i < gridList.Count; i++)
+        int gridCount = gridList.Count;
+        inventorySize = new RowColumn[gridCount];
+
+        for (int i = 0; i < gridCount; i++)
         {
             gridList[i].Initialize(this, i);
+            inventorySize[i] = gridList[i].GridSize;
         }
     }
 
-    private void Start()
+
+    public void SetupUI(InventoryData inventoryData)
     {
-        // 임시 코드
-        if (containableItemUI != null
-            && containableItemUI.Data is IContainableItem containableItem)
-        {
-            data = containableItem.InnerInventoryData;
-        }
-        else
-        {
-            RowColumn[] inventorySize = new RowColumn[gridList.Count];
+        Data = inventoryData;
 
-            for (int i = 0; i < gridList.Count; i++)
-            {
-                inventorySize[i] = gridList[i].GridSize;
-            }
+        // 인벤토리 UI에 ItemUI 오브젝트 추가
 
-            data = new(inventorySize);
-        }
+        InventoryUIManager.OpenUI(Data, this);
+    }
 
-        InventoryUIManager.OpenUI(data, this);
-        //
+    public void ResetUI()
+    {
+        InventoryUIManager.CloseUI(Data);
+
+        // 모든 ItemUI 오브젝트를 풀에 반환
+
+        Data = null;
     }
 
 
@@ -50,7 +50,7 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
 
     public void HandleItemDragBegin(int gridID, ItemUI itemUI)
     {
-        ItemLocation fromLocation = new(data, gridID, itemUI.Data.GridIndex, itemUI.Data.IsRotated);
+        ItemLocation fromLocation = new(Data, gridID, itemUI.Data.GridIndex, itemUI.Data.IsRotated);
         ItemDragManager.instance.BeginItemDrag(fromLocation, itemUI);
     }
 
@@ -58,7 +58,7 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
     {
         bool canDrop;
 
-        if (data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
+        if (Data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
             && !ReferenceEquals(itemData, itemUI.Data))
         {
             if (itemData is IContainableItem containableItem)
@@ -73,8 +73,8 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
         }
         else
         {
-            ItemLocation dragLocation = new(data, gridID, dragIndex, itemUI.IsUIRotated);
-            canDrop = data.CanAddItemAtLocation(dragLocation, itemUI.Data);
+            ItemLocation dragLocation = new(Data, gridID, dragIndex, itemUI.IsUIRotated);
+            canDrop = Data.CanAddItemAtLocation(dragLocation, itemUI.Data);
         }
 
         gridList[gridID].SetIndicator(dragIndex, itemUI.UISize, canDrop);
@@ -82,7 +82,7 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
 
     public void HandleItemDrop(int gridID, RowColumn mouseIndex, RowColumn dropIndex, ItemUI itemUI)
     {
-        if (data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
+        if (Data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
             && !ReferenceEquals(itemData, itemUI.Data))
         {
             if (itemData is IContainableItem containableItem
@@ -100,9 +100,9 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
         }
         else
         {
-            ItemLocation dropLocation = new(data, gridID, dropIndex, itemUI.IsUIRotated);
+            ItemLocation dropLocation = new(Data, gridID, dropIndex, itemUI.IsUIRotated);
 
-            if (data.CanAddItemAtLocation(dropLocation, itemUI.Data))
+            if (Data.CanAddItemAtLocation(dropLocation, itemUI.Data))
             {
                 ItemDragManager.instance.DropItem(dropLocation);
 

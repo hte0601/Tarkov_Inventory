@@ -6,10 +6,9 @@ using UnityEngine.UI;
 
 public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, IDropHandler
 {
-    [SerializeField] private ItemID itemID;
     public ItemData Data { get; private set; }
 
-    public InventoryGridUI gridUI;
+    public InventoryGridUI parentGridUI;
 
     private Image itemImage;
     public RowColumn UISize { get; private set; }
@@ -42,18 +41,40 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
         {
             Debug.LogError("Image 컴포넌트를 찾을 수 없음");
         }
+    }
 
-        // 임시 코드
-        Data = ItemFactory.CreateItemData(itemID);
 
-        gridUI = transform.GetComponentInParent<InventoryGridUI>();
-        if (!gridUI)
-        {
-            Debug.LogError("InParent에서 InventoryGridUI 컴포넌트를 찾을 수 없음");
-        }
+    private void SetUIObjectSize(ItemSizeData itemSize)
+    {
+        Vector2 size;
+        size.x = InventoryGridUI.SLOT_SIZE * itemSize.width + 1;
+        size.y = InventoryGridUI.SLOT_SIZE * itemSize.height + 1;
 
-        IsUIRotated = false;
-        //
+        rectTransform.sizeDelta = size;
+    }
+
+
+    public void SetupUI(ItemData itemData)
+    {
+        Data = itemData;
+
+        SetUIObjectSize(Data.ItemCurrentSize);
+        IsUIRotated = Data.IsRotated;
+
+        ResourceManager.TryGetItemIcon(Data.IconPath, out Sprite iconSprite);
+        itemImage.sprite = iconSprite;
+    }
+
+    public void ResetUI()
+    {
+        Data = null;
+        parentGridUI = null;
+        itemImage.sprite = null;
+
+        transform.rotation = Quaternion.identity;
+        _isUIRotated = false;
+        UISize = new RowColumn(1, 1);
+        TopLeftSlotPoint = new Vector2(0, 0);
     }
 
 
@@ -80,9 +101,9 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && gridUI != null)
+        if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
         {
-            gridUI.OnItemBeginDrag(this);
+            parentGridUI.OnItemBeginDrag(this);
         }
     }
 
@@ -98,9 +119,9 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && gridUI != null)
+        if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
         {
-            gridUI.OnDrop(eventData);
+            parentGridUI.OnDrop(eventData);
         }
     }
 }

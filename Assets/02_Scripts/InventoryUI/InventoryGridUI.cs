@@ -11,7 +11,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     public const int SLOT_SIZE = 63;
     public const int PADDING = 1;
 
-    private IInventoryUI inventoryUI;
+    private IInventoryUI parentInventoryUI;
     private int gridID;
     [SerializeField] private RowColumn _gridSize;  // 인스펙터에서 값 설정
 
@@ -23,18 +23,18 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     }
 
 
-    public void Initialize(IInventoryUI inventoryUI, int gridID)
+    public void Initialize(IInventoryUI parentInventoryUI, int gridID)
     {
         ItemListTransform = itemListObj.transform;
 
-        this.inventoryUI = inventoryUI;
+        this.parentInventoryUI = parentInventoryUI;
         this.gridID = gridID;
     }
 
 
     public void PlaceItemUIAtIndex(RowColumn index, bool isRotated, ItemUI itemUI)
     {
-        itemUI.gridUI = this;
+        itemUI.parentGridUI = this;
         itemUI.IsUIRotated = isRotated;
 
         itemUI.transform.SetParent(ItemListTransform);
@@ -52,7 +52,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     {
         if (!ItemDragManager.instance.IsDragging)
         {
-            inventoryUI.HandleItemDragBegin(gridID, item);
+            parentInventoryUI.HandleItemDragBegin(gridID, item);
         }
     }
 
@@ -78,7 +78,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
                 ScreenPointToGridIndex(itemPosition, out itemIndex, false);
             }
 
-            inventoryUI.HandleItemDrop(gridID, mouseIndex, itemIndex, draggingItem);
+            parentInventoryUI.HandleItemDrop(gridID, mouseIndex, itemIndex, draggingItem);
         }
     }
 
@@ -109,7 +109,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
             ScreenPointToGridIndex(itemPosition, out itemIndex, false);
         }
 
-        inventoryUI.HandleItemDragOver(gridID, mouseIndex, itemIndex, draggingItem);
+        parentInventoryUI.HandleItemDragOver(gridID, mouseIndex, itemIndex, draggingItem);
     }
 
 

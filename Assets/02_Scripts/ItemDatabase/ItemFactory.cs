@@ -16,7 +16,7 @@ public static class ItemFactory
         if (itemInfo.Category.Matches(ItemMainCategory1.BarterItems)
             || itemInfo.Category.Matches(ItemMainCategory1.InfoItems))
         {
-            itemData = new(itemInfo);
+            itemData = new ItemData(itemInfo);
         }
         else if (itemInfo.Category.Matches(ItemMainCategory1.Gear, GearSubCategory2.Backpacks))
         {

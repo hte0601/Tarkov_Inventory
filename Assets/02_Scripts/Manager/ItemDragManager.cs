@@ -105,6 +105,22 @@ public class ItemDragManager : MonoBehaviour
     }
 
 
+    public void AddItemAtLocation(ItemLocation toLocation, ItemUI itemUI)
+    {
+        toLocation.inventoryData.AddItemAtLocation(toLocation, itemUI.Data);
+
+        // UI 처리
+        if (InventoryUIManager.TryGetUI(toLocation.inventoryData, out InventoryUI inventoryUI))
+        {
+            inventoryUI.PlaceItemUIAtLocation(toLocation, itemUI);
+        }
+        else
+        {
+            // 오브젝트 풀에 ItemUI 반환
+        }
+    }
+
+
     public void BeginItemDrag(ItemLocation fromLocation, ItemUI itemUI)
     {
         IsDragging = true;
