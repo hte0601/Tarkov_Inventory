@@ -4,27 +4,27 @@ public struct ItemLocation : IEquatable<ItemLocation>
 {
     public InventoryData inventoryData;
     public int gridID;
-    public RowColumn index;
-    public bool isRotated;
+    public RowColumn gridIndex;
+    public bool isItemRotated;
 
-    public ItemLocation(InventoryData inventoryData, int gridID, RowColumn index, bool isRotated)
+    public ItemLocation(InventoryData inventoryData, int gridID, RowColumn gridIndex, bool isItemRotated)
     {
         this.inventoryData = inventoryData;
         this.gridID = gridID;
-        this.index = index;
-        this.isRotated = isRotated;
+        this.gridIndex = gridIndex;
+        this.isItemRotated = isItemRotated;
     }
 
 
     public readonly bool Equals(ItemLocation other)
     {
         return ReferenceEquals(inventoryData, other.inventoryData)
-            && gridID == other.gridID && index == other.index && isRotated == other.isRotated;
+            && gridID == other.gridID && gridIndex == other.gridIndex && isItemRotated == other.isItemRotated;
     }
 
     public static bool operator ==(ItemLocation lhs, ItemLocation rhs) => lhs.Equals(rhs);
     public static bool operator !=(ItemLocation lhs, ItemLocation rhs) => !lhs.Equals(rhs);
 
     public override readonly bool Equals(object obj) => obj is ItemLocation other && Equals(other);
-    public override readonly int GetHashCode() => HashCode.Combine(inventoryData, gridID, index, isRotated);
+    public override readonly int GetHashCode() => HashCode.Combine(inventoryData, gridID, gridIndex, isItemRotated);
 }

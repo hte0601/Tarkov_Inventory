@@ -44,7 +44,7 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
 
     public void PlaceItemUIAtLocation(ItemLocation location, ItemUI item)
     {
-        gridList[location.gridID].PlaceItemUIAtIndex(location.index, location.isRotated, item);
+        gridList[location.gridID].PlaceItemUIAtIndex(location.gridIndex, location.isItemRotated, item);
     }
 
 

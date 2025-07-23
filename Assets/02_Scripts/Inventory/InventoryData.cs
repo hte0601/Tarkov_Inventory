@@ -33,12 +33,12 @@ public class InventoryData
 
     public bool CanAddItemAtLocation(ItemLocation location, ItemData item)
     {
-        return gridDataArr[location.gridID].CanAddItemAtIndex(location.index, location.isRotated, item);
+        return gridDataArr[location.gridID].CanAddItemAtIndex(location.gridIndex, location.isItemRotated, item);
     }
 
     public bool AddItemAtLocation(ItemLocation location, ItemData item)
     {
-        return gridDataArr[location.gridID].AddItemAtIndex(location.index, location.isRotated, item);
+        return gridDataArr[location.gridID].AddItemAtIndex(location.gridIndex, location.isItemRotated, item);
     }
 
     public void RemoveItem(int gridID, ItemData item)

@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, IDropHandler
 {
+    private static readonly Dictionary<RowColumn, Vector2> cachedTopLeftCellOffset = new();
+
     public ItemData Data { get; private set; }
 
     public InventoryGridUI parentGridUI;
@@ -41,6 +43,22 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
         {
             Debug.LogError("Image 컴포넌트를 찾을 수 없음");
         }
+    }
+
+
+    public Vector2 GetTopLeftCellOffset(bool isItemUIRotated)
+    {
+        RowColumn itemSize = Data.GetItemSize(isItemUIRotated);
+
+        if (!cachedTopLeftCellOffset.TryGetValue(itemSize, out Vector2 offset))
+        {
+            offset.x = -(itemSize.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+            offset.y = (itemSize.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
+
+            cachedTopLeftCellOffset.Add(itemSize, offset);
+        }
+
+        return offset;
     }
 
 
