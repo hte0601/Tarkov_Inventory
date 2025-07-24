@@ -30,7 +30,7 @@ public class DropIndicatorUI : UIBase
                 localPosition.y = InventoryGridUI.SLOT_SIZE * value.row;
                 localPosition.y *= -1f;
 
-                transform.localPosition = localPosition;
+                rectTransform.localPosition = localPosition;
             }
         }
     }
@@ -47,11 +47,8 @@ public class DropIndicatorUI : UIBase
             {
                 _size = value;
 
-                Vector2 size;
-                size.x = InventoryGridUI.SLOT_SIZE * value.col + 1;
-                size.y = InventoryGridUI.SLOT_SIZE * value.row + 1;
-
-                rectTransform.sizeDelta = size;
+                ItemSizeData itemSizeData = new(value.col, value.row);
+                rectTransform.sizeDelta = ItemUI.CalcItemUIObjectSize(itemSizeData);
             }
         }
     }
@@ -93,13 +90,6 @@ public class DropIndicatorUI : UIBase
         Index = index;
         Size = size;
 
-        if (canDrop)
-        {
-            indicatorImage.color = greenColor;
-        }
-        else
-        {
-            indicatorImage.color = redColor;
-        }
+        indicatorImage.color = canDrop ? greenColor : redColor;
     }
 }

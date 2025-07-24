@@ -8,6 +8,16 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
 {
     private static readonly Dictionary<RowColumn, Vector2> cachedTopLeftCellOffset = new();
 
+    public static Vector2 CalcItemUIObjectSize(ItemSizeData itemSizeData)
+    {
+        Vector2 sizeDelta;
+        sizeDelta.x = InventoryGridUI.SLOT_SIZE * itemSizeData.width + 1;
+        sizeDelta.y = InventoryGridUI.SLOT_SIZE * itemSizeData.height + 1;
+
+        return sizeDelta;
+    }
+
+
     public ItemData Data { get; private set; }
 
     public InventoryGridUI parentGridUI;
@@ -24,7 +34,7 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
         {
             _isUIRotated = value;
 
-            transform.rotation = value ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+            rectTransform.rotation = value ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
             UISize = Data.GetItemSize(value);
 
             Vector2 point;
@@ -46,6 +56,37 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
     }
 
 
+    public void SetupUI(ItemData itemData)
+    {
+        Data = itemData;
+
+        rectTransform.sizeDelta = CalcItemUIObjectSize(Data.ItemSizeData);
+        IsUIRotated = Data.IsRotated;
+
+        ResourceManager.TryGetItemIcon(Data.IconPath, out Sprite iconSprite);
+        itemImage.sprite = iconSprite;
+    }
+
+    public void ResetUI()
+    {
+        Data = null;
+        parentGridUI = null;
+
+        itemImage.sprite = null;
+        rectTransform.rotation = Quaternion.identity;
+        rectTransform.sizeDelta = CalcItemUIObjectSize(new ItemSizeData(1, 1));
+
+        _isUIRotated = false;
+        UISize = new RowColumn(1, 1);
+        TopLeftSlotPoint = new Vector2(0, 0);
+    }
+
+    public void SetItemImageEnabled(bool enabled)
+    {
+        itemImage.enabled = enabled;
+    }
+
+
     public Vector2 GetTopLeftCellOffset(bool isItemUIRotated)
     {
         RowColumn itemSize = Data.GetItemSize(isItemUIRotated);
@@ -61,38 +102,9 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
         return offset;
     }
 
-
-    private void SetUIObjectSize(ItemSizeData itemSize)
+    public Sprite GetItemImageSprite()
     {
-        Vector2 size;
-        size.x = InventoryGridUI.SLOT_SIZE * itemSize.width + 1;
-        size.y = InventoryGridUI.SLOT_SIZE * itemSize.height + 1;
-
-        rectTransform.sizeDelta = size;
-    }
-
-
-    public void SetupUI(ItemData itemData)
-    {
-        Data = itemData;
-
-        SetUIObjectSize(Data.ItemCurrentSize);
-        IsUIRotated = Data.IsRotated;
-
-        ResourceManager.TryGetItemIcon(Data.IconPath, out Sprite iconSprite);
-        itemImage.sprite = iconSprite;
-    }
-
-    public void ResetUI()
-    {
-        Data = null;
-        parentGridUI = null;
-        itemImage.sprite = null;
-
-        transform.rotation = Quaternion.identity;
-        _isUIRotated = false;
-        UISize = new RowColumn(1, 1);
-        TopLeftSlotPoint = new Vector2(0, 0);
+        return itemImage.sprite;
     }
 
 

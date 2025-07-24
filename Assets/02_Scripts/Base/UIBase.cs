@@ -16,8 +16,8 @@ public class UIBase : MonoBehaviour
             if (wasTransformParentChanged)
             {
                 wasTransformParentChanged = false;
-                cachedRenderingCanvas = GetComponentInParent<Canvas>();
 
+                cachedRenderingCanvas = GetComponentInParent<Canvas>();
                 if (cachedRenderingCanvas == null)
                 {
                     Debug.LogError("InParent에서 Canvas 컴포넌트를 찾을 수 없음");
@@ -37,7 +37,7 @@ public class UIBase : MonoBehaviour
         }
         else
         {
-            Debug.LogError("RectTransform을 가지고 있지 않음");
+            Debug.LogError("게임오브젝트의 Transform이 RectTransform이 아님");
         }
     }
 
