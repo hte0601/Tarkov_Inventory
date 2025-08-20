@@ -10,11 +10,13 @@ public class InventoryGridData
         public ItemData itemInSlot;
     }
 
-    private RowColumn gridSize;
-    private SlotData[,] slots;
+    private readonly int gridID;
+    private readonly RowColumn gridSize;
+    private readonly SlotData[,] slots;
 
-    public InventoryGridData(RowColumn gridSize)
+    public InventoryGridData(int gridID, RowColumn gridSize)
     {
+        this.gridID = gridID;
         this.gridSize = gridSize;
         slots = new SlotData[gridSize.row, gridSize.col];
 
@@ -29,11 +31,11 @@ public class InventoryGridData
     }
 
 
-    public bool TryGetItemAtIndex(RowColumn index, out ItemData item)
+    public bool TryGetItemAtIndex(RowColumn gridIndex, out ItemData item)
     {
-        if (!slots[index.row, index.col].isSlotEmpty)
+        if (!slots[gridIndex.row, gridIndex.col].isSlotEmpty)
         {
-            item = slots[index.row, index.col].itemInSlot;
+            item = slots[gridIndex.row, gridIndex.col].itemInSlot;
             return true;
         }
         else
@@ -44,16 +46,16 @@ public class InventoryGridData
     }
 
 
-    public bool CanAddItemAtIndex(RowColumn index, bool isRotated, ItemData item)
+    public bool CanAddItemAtIndex(ItemData item, RowColumn gridIndex, bool isItemRotated)
     {
-        RowColumn itemSize = item.GetItemSize(isRotated);
+        RowColumn itemSize = item.GetItemSize(isItemRotated);
 
-        if (index.row < 0 || gridSize.row <= index.row + itemSize.row - 1)
+        if (gridIndex.row < 0 || gridSize.row <= gridIndex.row + itemSize.row - 1)
         {
             return false;
         }
 
-        if (index.col < 0 || gridSize.col <= index.col + itemSize.col - 1)
+        if (gridIndex.col < 0 || gridSize.col <= gridIndex.col + itemSize.col - 1)
         {
             return false;
         }
@@ -62,7 +64,7 @@ public class InventoryGridData
         {
             for (int c = 0; c < itemSize.col; c++)
             {
-                ref SlotData slot = ref slots[index.row + r, index.col + c];
+                ref SlotData slot = ref slots[gridIndex.row + r, gridIndex.col + c];
 
                 if (!slot.isSlotEmpty && !ReferenceEquals(slot.itemInSlot, item))
                 {
@@ -74,46 +76,51 @@ public class InventoryGridData
         return true;
     }
 
-    public bool AddItemAtIndex(RowColumn index, bool isRotated, ItemData item)
+    public void AddItemAtIndex(ItemData item, RowColumn gridIndex, bool isItemRotated)
     {
-        if (!CanAddItemAtIndex(index, isRotated, item))
-        {
-            return false;
-        }
-
-        item.GridIndex = index;
-        item.IsRotated = isRotated;
+        item.gridID = gridID;
+        item.gridIndex = gridIndex;
+        item.IsItemRotated = isItemRotated;
         RowColumn itemSize = item.ItemSize;
 
         for (int r = 0; r < itemSize.row; r++)
         {
             for (int c = 0; c < itemSize.col; c++)
             {
-                slots[index.row + r, index.col + c].isSlotEmpty = false;
-                slots[index.row + r, index.col + c].itemInSlot = item;
+                slots[gridIndex.row + r, gridIndex.col + c].isSlotEmpty = false;
+                slots[gridIndex.row + r, gridIndex.col + c].itemInSlot = item;
             }
         }
+    }
 
-        return true;
+    public bool CanRemoveItem(ItemData item)
+    {
+        ItemData itemInSlot = slots[item.gridIndex.row, item.gridIndex.col].itemInSlot;
+
+        return ReferenceEquals(item, itemInSlot);
     }
 
     public void RemoveItem(ItemData item)
     {
-        RowColumn index = item.GridIndex;
+        RowColumn gridIndex = item.gridIndex;
         RowColumn itemSize = item.ItemSize;
 
         for (int r = 0; r < itemSize.row; r++)
         {
             for (int c = 0; c < itemSize.col; c++)
             {
-                slots[index.row + r, index.col + c].isSlotEmpty = true;
-                slots[index.row + r, index.col + c].itemInSlot = null;
+                slots[gridIndex.row + r, gridIndex.col + c].isSlotEmpty = true;
+                slots[gridIndex.row + r, gridIndex.col + c].itemInSlot = null;
             }
         }
+
+        item.gridID = 0;
+        item.gridIndex = new RowColumn(0, 0);
+        item.IsItemRotated = false;
     }
 
 
-    public bool TryFindIndexToAddItem(ItemData item, out RowColumn index, out bool isRotated)
+    public bool TryFindIndexToAddItem(ItemData item, out RowColumn gridIndex, out bool isItemRotated)
     {
         bool isItemSquare = item.ItemSize.row == item.ItemSize.col;
 
@@ -121,24 +128,24 @@ public class InventoryGridData
         {
             for (int c = 0; c < gridSize.col; c++)
             {
-                index = new(r, c);
+                gridIndex = new RowColumn(r, c);
 
-                if (CanAddItemAtIndex(index, false, item))
+                if (CanAddItemAtIndex(item, gridIndex, false))
                 {
-                    isRotated = false;
+                    isItemRotated = false;
                     return true;
                 }
 
-                if (!isItemSquare && CanAddItemAtIndex(index, true, item))
+                if (!isItemSquare && CanAddItemAtIndex(item, gridIndex, true))
                 {
-                    isRotated = true;
+                    isItemRotated = true;
                     return true;
                 }
             }
         }
 
-        index = new(0, 0);
-        isRotated = false;
+        gridIndex = new RowColumn(0, 0);
+        isItemRotated = false;
         return false;
     }
 }
