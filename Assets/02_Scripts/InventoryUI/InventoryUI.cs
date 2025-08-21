@@ -5,8 +5,14 @@ using UnityEngine;
 
 public class InventoryUI : MonoBehaviour, IInventoryUI
 {
+    public event Action<IInventoryUI, ItemUI> OnItemDragBegin;
+    public event Action<IInventoryUI, ItemUI> OnItemDragEnd;
+    public event Action<IInventoryUI, ItemUI, ItemLocation> OnItemDropOnInventoryGrid;
+    public event Action<IInventoryUI, ItemUI, IContainableItemData> OnItemDropOnContainableItem;
+
     [SerializeField] private List<InventoryGridUI> gridList;
     public RowColumn[] inventorySize;
+    private Dictionary<RowColumn, ItemUI>[] itemUIList;
 
     public InventoryData Data { get; private set; }
 
@@ -14,11 +20,13 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
     {
         int gridCount = gridList.Count;
         inventorySize = new RowColumn[gridCount];
+        itemUIList = new Dictionary<RowColumn, ItemUI>[gridCount];
 
         for (int i = 0; i < gridCount; i++)
         {
             gridList[i].Initialize(this, i);
             inventorySize[i] = gridList[i].GridSize;
+            itemUIList[i] = new Dictionary<RowColumn, ItemUI>();
         }
     }
 
@@ -28,90 +36,97 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
         Data = inventoryData;
 
         // 인벤토리 UI에 ItemUI 오브젝트 추가
-
-        InventoryUIManager.OpenUI(Data, this);
     }
 
     public void ResetUI()
     {
-        InventoryUIManager.CloseUI(Data);
-
         // 모든 ItemUI 오브젝트를 풀에 반환
 
         Data = null;
     }
 
 
-    public void PlaceItemUIAtLocation(ItemLocation location, ItemUI item)
+    public bool AddItemUI(ItemUI itemUI)
     {
-        gridList[location.gridID].PlaceItemUIAtIndex(location.gridIndex, location.isItemRotated, item);
-    }
+        ItemData itemData = itemUI.Data;
 
-
-    public void HandleItemDragBegin(int gridID, ItemUI itemUI)
-    {
-        ItemLocation fromLocation = new(Data, gridID, itemUI.Data.GridIndex, itemUI.Data.IsRotated);
-        ItemDragManager.instance.BeginItemDrag(fromLocation, itemUI);
-    }
-
-    public void HandleItemDragOver(int gridID, RowColumn mouseIndex, RowColumn dragIndex, ItemUI itemUI)
-    {
-        bool canDrop;
-
-        if (Data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
-            && !ReferenceEquals(itemData, itemUI.Data))
+        if (itemUIList[itemData.gridID].TryAdd(itemData.gridIndex, itemUI))
         {
-            if (itemData is IContainableItem containableItem)
-            {
-                canDrop = containableItem.InnerInventoryData.CanAddItemToInventory(itemUI.Data);
-            }
-            else
-            {
-                // 스택이 되는 아이템인 경우 따로 처리해야 함
-                canDrop = false;
-            }
+            gridList[itemData.gridID].AddItemUIAtIndex(itemUI, itemData.gridIndex, itemData.IsItemRotated);
+
+            return true;
         }
         else
         {
-            ItemLocation dragLocation = new(Data, gridID, dragIndex, itemUI.IsUIRotated);
-            canDrop = Data.CanAddItemAtLocation(dragLocation, itemUI.Data);
+            return false;
         }
-
-        gridList[gridID].SetIndicator(dragIndex, itemUI.UISize, canDrop);
     }
 
-    public void HandleItemDrop(int gridID, RowColumn mouseIndex, RowColumn dropIndex, ItemUI itemUI)
+    public bool RemoveItemUI(int gridID, RowColumn gridIndex, out ItemUI itemUI)
     {
-        if (Data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemData)
-            && !ReferenceEquals(itemData, itemUI.Data))
+        if (itemUIList[gridID].Remove(gridIndex, out itemUI))
         {
-            if (itemData is IContainableItem containableItem
-                && containableItem.InnerInventoryData.TryFindLocationToAddItem(itemUI.Data, out ItemLocation location))
-            {
-                ItemDragManager.instance.DropItem(location);
+            itemUI.parentGridUI = null;
 
-                Debug.LogFormat("({0}, {1}) 드래그 성공", mouseIndex.row, mouseIndex.col);
-            }
-            else
-            {
-                // 스택이 되는 아이템인 경우 따로 처리해야 함
-                Debug.LogFormat("({0}, {1}) 드래그 실패", mouseIndex.row, mouseIndex.col);
-            }
+            return true;
         }
         else
         {
-            ItemLocation dropLocation = new(Data, gridID, dropIndex, itemUI.IsUIRotated);
-
-            if (Data.CanAddItemAtLocation(dropLocation, itemUI.Data))
-            {
-                ItemDragManager.instance.DropItem(dropLocation);
-
-                Debug.LogFormat("({0}, {1}) 드래그 성공", dropIndex.row, dropIndex.col);
-            }
-            else
-            {
-                Debug.LogFormat("({0}, {1}) 드래그 실패", dropIndex.row, dropIndex.col);
-            }
+            return false;
         }
+    }
+
+
+    // InventoryGridUI의 드래그 드랍 이벤트에 대한 핸들러
+    public void HandleItemDragBegin(ItemUI itemUI, int gridID)
+    {
+        OnItemDragBegin?.Invoke(this, itemUI);
+    }
+
+    public void HandleItemDragEnd(ItemUI itemUI, int gridID)
+    {
+        OnItemDragEnd?.Invoke(this, itemUI);
+    }
+
+    public void HandleItemDrop(ItemDragContext dragContext, int gridID, RowColumn mouseIndex, RowColumn dropIndex)
+    {
+        ItemUI droppedItemUI = dragContext.DraggingItemUI;
+
+        if (Data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemInSlot)
+            && !ReferenceEquals(itemInSlot, dragContext.ItemData))
+        {
+            if (itemInSlot is IContainableItemData containableItem)
+            {
+                OnItemDropOnContainableItem?.Invoke(this, droppedItemUI, containableItem);
+                return;
+            }
+            // else if (itemInSlot is IStackableItemData stackableItem) { }
+        }
+
+        ItemLocation dropLocation = new(Data, gridID, dropIndex, dragContext.IsItemUIRotated);
+        OnItemDropOnInventoryGrid?.Invoke(this, droppedItemUI, dropLocation);
+    }
+
+    public void HandleItemDragOver(ItemDragContext dragContext, int gridID, RowColumn mouseIndex, RowColumn dragOverIndex)
+    {
+        bool? canDrop = null;
+
+        if (Data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemInSlot)
+            && !ReferenceEquals(itemInSlot, dragContext.ItemData))
+        {
+            if (itemInSlot is IContainableItemData containableItem)
+            {
+                canDrop = containableItem.InnerInventoryData.CanAddItemToInventory(dragContext.ItemData);
+            }
+            // else if (itemInSlot is IStackableItemData stackableItem) { }
+        }
+
+        if (!canDrop.HasValue)
+        {
+            ItemLocation dragOverLocation = new(Data, gridID, dragOverIndex, dragContext.IsItemUIRotated);
+            canDrop = Data.CanAddItemAtLocation(dragContext.ItemData, dragOverLocation);
+        }
+
+        gridList[gridID].SetIndicator(dragOverIndex, dragContext.ItemUISize, canDrop.Value);
     }
 }

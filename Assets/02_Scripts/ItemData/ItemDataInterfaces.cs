@@ -1,4 +1,4 @@
-public interface IContainableItem
+public interface IContainableItemData
 {
     public InventoryData InnerInventoryData
     {

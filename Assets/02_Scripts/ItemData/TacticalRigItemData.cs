@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TacticalRigItemData : GearItemData, IContainableItem
+public class TacticalRigItemData : GearItemData, IContainableItemData
 {
     public InventoryData InnerInventoryData { get; private set; }
 

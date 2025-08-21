@@ -19,30 +19,8 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
 
 
     public ItemData Data { get; private set; }
-
     public InventoryGridUI parentGridUI;
-
     private Image itemImage;
-    public RowColumn UISize { get; private set; }
-    public Vector2 TopLeftSlotPoint { get; private set; }
-    private bool _isUIRotated;
-
-    public bool IsUIRotated
-    {
-        get { return _isUIRotated; }
-        set
-        {
-            _isUIRotated = value;
-
-            rectTransform.rotation = value ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
-            UISize = Data.GetItemSize(value);
-
-            Vector2 point;
-            point.x = -(UISize.col - 1) / 2f * InventoryGridUI.SLOT_SIZE;
-            point.y = (UISize.row - 1) / 2f * InventoryGridUI.SLOT_SIZE;
-            TopLeftSlotPoint = point;
-        }
-    }
 
 
     protected override void Awake()
@@ -61,7 +39,7 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
         Data = itemData;
 
         rectTransform.sizeDelta = CalcItemUIObjectSize(Data.ItemSizeData);
-        IsUIRotated = Data.IsRotated;
+        rectTransform.rotation = Data.IsItemRotated ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
 
         ResourceManager.TryGetItemIcon(Data.IconPath, out Sprite iconSprite);
         itemImage.sprite = iconSprite;
@@ -75,10 +53,6 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
         itemImage.sprite = null;
         rectTransform.rotation = Quaternion.identity;
         rectTransform.sizeDelta = CalcItemUIObjectSize(new ItemSizeData(1, 1));
-
-        _isUIRotated = false;
-        UISize = new RowColumn(1, 1);
-        TopLeftSlotPoint = new Vector2(0, 0);
     }
 
     public void SetItemImageEnabled(bool enabled)
@@ -108,24 +82,6 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
     }
 
 
-    public void SetUITransparent(bool isTransparent)
-    {
-        if (isTransparent)
-        {
-            itemImage.color = new Color32(255, 255, 255, 224);
-        }
-        else
-        {
-            itemImage.color = new Color32(255, 255, 255, 255);
-        }
-    }
-
-    public void RotateItemUI()
-    {
-        IsUIRotated = !IsUIRotated;
-    }
-
-
     // EventSystem Handler 구현
     public void OnDrag(PointerEventData eventData) { }
 
@@ -133,17 +89,15 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
     {
         if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
         {
-            parentGridUI.OnItemBeginDrag(this);
+            parentGridUI.HandleItemUIBeginDrag(this, eventData);
         }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left
-            && ItemDragManager.instance.IsDragging
-            && ReferenceEquals(this, ItemDragManager.instance.DraggingItem))
+        if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
         {
-            ItemDragManager.instance.CancelItemDrag();
+            parentGridUI.HandleItemUIEndDrag(this, eventData);
         }
     }
 
@@ -151,7 +105,7 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
     {
         if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
         {
-            parentGridUI.OnDrop(eventData);
+            parentGridUI.HandleItemUIDrop(this, eventData);
         }
     }
 }

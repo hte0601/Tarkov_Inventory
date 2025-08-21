@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BackpackItemData : GearItemData, IContainableItem
+public class BackpackItemData : GearItemData, IContainableItemData
 {
     public InventoryData InnerInventoryData { get; private set; }
 

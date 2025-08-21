@@ -11,8 +11,10 @@ public class ItemData
     private ItemSizeData itemBaseSizeData;  // static
     private ItemSizeData _itemSizeData;  // 저장 ?
     public RowColumn ItemSize { get; protected set; }  // 저장 x
-    public RowColumn GridIndex { get; set; }  // 저장 x
-    private bool _isRotated;  // 저장 o
+
+    public int gridID;  // 저장 o
+    public RowColumn gridIndex;  // 저장 o
+    private bool _isItemRotated;  // 저장 o
 
     public ItemSizeData ItemSizeData
     {
@@ -20,16 +22,16 @@ public class ItemData
         protected set
         {
             _itemSizeData = value;
-            ItemSize = GetItemSize(IsRotated);
+            ItemSize = GetItemSize(IsItemRotated);
         }
     }
 
-    public bool IsRotated
+    public bool IsItemRotated
     {
-        get { return _isRotated; }
+        get { return _isItemRotated; }
         set
         {
-            _isRotated = value;
+            _isItemRotated = value;
             ItemSize = GetItemSize(value);
         }
     }
@@ -41,10 +43,11 @@ public class ItemData
         IconPath = itemInfo.IconPath;
         Category = itemInfo.Category;
         itemBaseSizeData = itemInfo.ItemSize;
-
         ItemSizeData = itemBaseSizeData;
-        GridIndex = new(0, 0);
-        IsRotated = false;
+
+        gridID = 0;
+        gridIndex = new RowColumn(0, 0);
+        IsItemRotated = false;
     }
 
 

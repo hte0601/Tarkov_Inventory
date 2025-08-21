@@ -10,46 +10,40 @@ public class DropIndicatorUI : UIBase
 
     private Image indicatorImage;
 
-    private RowColumn _index = new(-1, -1);
-    private RowColumn _size = new(0, 0);
+    private RowColumn _gridIndex;
+    private RowColumn _indicatorSize;
 
-    public RowColumn Index
+    private RowColumn GridIndex
     {
         get
         {
-            return _index;
+            return _gridIndex;
         }
-        private set
+        set
         {
-            if (_index != value)
-            {
-                _index = value;
+            _gridIndex = value;
 
-                Vector2 localPosition;
-                localPosition.x = InventoryGridUI.SLOT_SIZE * value.col;
-                localPosition.y = InventoryGridUI.SLOT_SIZE * value.row;
-                localPosition.y *= -1f;
+            Vector2 localPosition;
+            localPosition.x = InventoryGridUI.SLOT_SIZE * value.col;
+            localPosition.y = InventoryGridUI.SLOT_SIZE * value.row;
+            localPosition.y *= -1f;
 
-                rectTransform.localPosition = localPosition;
-            }
+            rectTransform.localPosition = localPosition;
         }
     }
 
-    public RowColumn Size
+    private RowColumn IndicatorSize
     {
         get
         {
-            return _size;
+            return _indicatorSize;
         }
-        private set
+        set
         {
-            if (_size != value)
-            {
-                _size = value;
+            _indicatorSize = value;
 
-                ItemSizeData itemSizeData = new(value.col, value.row);
-                rectTransform.sizeDelta = ItemUI.CalcItemUIObjectSize(itemSizeData);
-            }
+            ItemSizeData itemSizeData = new(value.col, value.row);
+            rectTransform.sizeDelta = ItemUI.CalcItemUIObjectSize(itemSizeData);
         }
     }
 
@@ -62,8 +56,8 @@ public class DropIndicatorUI : UIBase
         {
             indicatorImage.enabled = false;
 
-            Index = new(0, 0);
-            Size = new(1, 1);
+            GridIndex = new RowColumn(0, 0);
+            IndicatorSize = new RowColumn(1, 1);
         }
         else
         {
@@ -72,10 +66,8 @@ public class DropIndicatorUI : UIBase
     }
 
 
-    public void BeginDragOver(RowColumn itemSize)
+    public void BeginDragOver()
     {
-        Size = itemSize;
-
         indicatorImage.enabled = true;
     }
 
@@ -85,10 +77,17 @@ public class DropIndicatorUI : UIBase
     }
 
 
-    public void SetIndicator(RowColumn index, RowColumn size, bool canDrop)
+    public void SetIndicator(RowColumn gridIndex, RowColumn indicatorSize, bool canDrop)
     {
-        Index = index;
-        Size = size;
+        if (GridIndex != gridIndex)
+        {
+            GridIndex = gridIndex;
+        }
+
+        if (IndicatorSize != indicatorSize)
+        {
+            IndicatorSize = indicatorSize;
+        }
 
         indicatorImage.color = canDrop ? greenColor : redColor;
     }

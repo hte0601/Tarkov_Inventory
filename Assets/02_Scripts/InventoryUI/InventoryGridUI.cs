@@ -5,11 +5,11 @@ using UnityEngine.EventSystems;
 
 public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
 {
-    [SerializeField] private GameObject itemListObj;
-    [SerializeField] private DropIndicatorUI dropIndicator;
-
     public const int SLOT_SIZE = 63;
     public const int PADDING = 1;
+
+    [SerializeField] private GameObject itemListObj;
+    [SerializeField] private DropIndicatorUI dropIndicator;
 
     private IInventoryUI parentInventoryUI;
     private int gridID;
@@ -32,89 +32,81 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     }
 
 
-    public void PlaceItemUIAtIndex(RowColumn index, bool isRotated, ItemUI itemUI)
+    public void AddItemUIAtIndex(ItemUI itemUI, RowColumn gridIndex, bool isItemUIRotated)
     {
         itemUI.parentGridUI = this;
-        itemUI.IsUIRotated = isRotated;
-
         itemUI.transform.SetParent(ItemListTransform);
-        itemUI.transform.localPosition = GridIndexToLocalPoint(index) - itemUI.TopLeftSlotPoint;
+
+        Vector2 localPosition = GridIndexToLocalPoint(gridIndex) - itemUI.GetTopLeftCellOffset(isItemUIRotated);
+        Quaternion localRotation = isItemUIRotated ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
+        itemUI.transform.SetLocalPositionAndRotation(localPosition, localRotation);
     }
 
-    public void SetIndicator(RowColumn index, RowColumn size, bool canDrop)
+    public void SetIndicator(RowColumn gridIndex, RowColumn indicatorSize, bool canDrop)
     {
-        dropIndicator.SetIndicator(index, size, canDrop);
+        dropIndicator.SetIndicator(gridIndex, indicatorSize, canDrop);
     }
 
 
-    // 아이템 Drag 관련 메소드 (ItemUI로부터 호출됨)
-    public void OnItemBeginDrag(ItemUI item)
+    // ItemUI의 드래그 드랍 이벤트에 대한 핸들러
+    public void HandleItemUIBeginDrag(ItemUI itemUI, PointerEventData eventData)
     {
-        if (!ItemDragManager.instance.IsDragging)
-        {
-            parentInventoryUI.HandleItemDragBegin(gridID, item);
-        }
+        parentInventoryUI.HandleItemDragBegin(itemUI, gridID);
+    }
+
+    public void HandleItemUIEndDrag(ItemUI itemUI, PointerEventData eventData)
+    {
+        parentInventoryUI.HandleItemDragEnd(itemUI, gridID);
+    }
+
+    public void HandleItemUIDrop(ItemUI itemUI, PointerEventData eventData)
+    {
+        OnDrop(eventData);
     }
 
 
-    // IDropHandler 구현 (ItemUI로부터 호출될 수 있음)
+    // IDropHandler 구현
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && ItemDragManager.instance.IsDragging)
+        if (eventData.button == PointerEventData.InputButton.Left
+            && ItemDragManager.instance.dragContext.IsDragging)
         {
+            ItemDragContext dragContext = ItemDragManager.instance.dragContext;
             Vector2 mousePosition = eventData.position;
-            ItemUI draggingItem = ItemDragManager.instance.DraggingItem;
+            Vector2 itemPosition = mousePosition + dragContext.ItemUITopLeftCellOffset;
 
-            ScreenPointToGridIndex(mousePosition, out RowColumn mouseIndex, false);
-            RowColumn itemIndex;
+            ScreenPointToGridIndex(mousePosition, out RowColumn mouseIndex);
+            ScreenPointToGridIndex(itemPosition, out RowColumn itemIndex);
 
-            if (draggingItem.UISize.row == 1 && draggingItem.UISize.col == 1)
-            {
-                itemIndex = mouseIndex;
-            }
-            else
-            {
-                Vector2 itemPosition = mousePosition + draggingItem.TopLeftSlotPoint;
-                ScreenPointToGridIndex(itemPosition, out itemIndex, false);
-            }
-
-            parentInventoryUI.HandleItemDrop(gridID, mouseIndex, itemIndex, draggingItem);
+            parentInventoryUI.HandleItemDrop(dragContext, gridID, mouseIndex, itemIndex);
         }
     }
 
 
     // DragOver 관련 메소드 (ItemDragManager로부터 호출됨)
-    public void OnBeginDragOver(ItemUI draggingItem)
+    public void OnDragOverBegin()
     {
-        dropIndicator.BeginDragOver(draggingItem.UISize);
+        dropIndicator.BeginDragOver();
     }
 
-    public void OnEndDragOver()
+    public void OnDragOverEnd()
     {
         dropIndicator.EndDragOver();
     }
 
-    public void OnDragOver(Vector2 mousePosition, ItemUI draggingItem)
+    public void OnDragOver(ItemDragContext dragContext, Vector2 mousePosition)
     {
-        ScreenPointToGridIndex(mousePosition, out RowColumn mouseIndex, false);
-        RowColumn itemIndex;
+        Vector2 itemPosition = mousePosition + dragContext.ItemUITopLeftCellOffset;
 
-        if (draggingItem.UISize.row == 1 && draggingItem.UISize.col == 1)
-        {
-            itemIndex = mouseIndex;
-        }
-        else
-        {
-            Vector2 itemPosition = mousePosition + draggingItem.TopLeftSlotPoint;
-            ScreenPointToGridIndex(itemPosition, out itemIndex, false);
-        }
+        ScreenPointToGridIndex(mousePosition, out RowColumn mouseIndex);
+        ScreenPointToGridIndex(itemPosition, out RowColumn itemIndex);
 
-        parentInventoryUI.HandleItemDragOver(gridID, mouseIndex, itemIndex, draggingItem);
+        parentInventoryUI.HandleItemDragOver(dragContext, gridID, mouseIndex, itemIndex);
     }
 
 
     // 좌표 변환 메소드들
-    private RowColumn LocalPointToGridIndex(Vector2 localPoint, bool indexClamping)
+    private RowColumn LocalPointToGridIndex(Vector2 localPoint)
     {
         RowColumn gridIndex;
         float width = rectTransform.rect.width;
@@ -127,20 +119,20 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
         gridIndex.row = Mathf.FloorToInt((localPoint.y - PADDING) / SLOT_SIZE);
         gridIndex.col = Mathf.FloorToInt((localPoint.x - PADDING) / SLOT_SIZE);
 
-        if (indexClamping)
-        {
-            gridIndex.row = Mathf.Clamp(gridIndex.row, 0, GridSize.row - 1);
-            gridIndex.col = Mathf.Clamp(gridIndex.col, 0, GridSize.col - 1);
-        }
+        // if (indexClamping)
+        // {
+        //     gridIndex.row = Mathf.Clamp(gridIndex.row, 0, GridSize.row - 1);
+        //     gridIndex.col = Mathf.Clamp(gridIndex.col, 0, GridSize.col - 1);
+        // }
 
         return gridIndex;
     }
 
-    private bool ScreenPointToGridIndex(Vector2 screenPoint, out RowColumn gridIndex, bool indexClamping)
+    private bool ScreenPointToGridIndex(Vector2 screenPoint, out RowColumn gridIndex)
     {
         if (ScreenPointToLocalPoint(screenPoint, out Vector2 localPoint))
         {
-            gridIndex = LocalPointToGridIndex(localPoint, indexClamping);
+            gridIndex = LocalPointToGridIndex(localPoint);
 
             return true;
         }

@@ -6,25 +6,23 @@ public class ItemDragManager : MonoBehaviour
 {
     public static ItemDragManager instance;
 
-    private RectTransform canvasRectTransform;
-    private Camera canvasWorldCamera;
+    [SerializeField] private ItemDragGhost dragGhost;
+    public readonly ItemDragContext dragContext = new();
 
     private InventoryRaycaster inventoryRaycaster;
     private InventoryGridUI prevGridUI;
 
-    private ItemLocation fromLocation;
-    public ItemUI DraggingItem { get; private set; }
-    public bool IsDragging { get; private set; }
+    private Transform cachedTransform;
+    private RectTransform canvasRectTransform;
+    private Camera canvasWorldCamera;
 
     private void Awake()
     {
         instance = this;
 
-        inventoryRaycaster = new();
+        inventoryRaycaster = new InventoryRaycaster();
         prevGridUI = null;
-
-        DraggingItem = null;
-        IsDragging = false;
+        cachedTransform = transform;
 
         Canvas renderingCanvas = GetComponentInParent<Canvas>();
         if (renderingCanvas != null)
@@ -40,7 +38,7 @@ public class ItemDragManager : MonoBehaviour
 
     private void Update()
     {
-        if (!IsDragging)
+        if (!dragContext.IsDragging)
         {
             return;
         }
@@ -49,13 +47,14 @@ public class ItemDragManager : MonoBehaviour
         if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
             canvasRectTransform, Input.mousePosition, canvasWorldCamera, out Vector2 localPoint))
         {
-            transform.localPosition = localPoint;
+            cachedTransform.localPosition = localPoint;
         }
 
         // 아이템 회전 입력 처리
         if (Input.GetKeyDown(KeyCode.R))
         {
-            DraggingItem.RotateItemUI();
+            dragContext.RotateItemUI();
+            dragGhost.RotateImage(dragContext.IsItemUIRotated);
         }
 
         // 아이템 DragOver 처리
@@ -66,12 +65,12 @@ public class ItemDragManager : MonoBehaviour
         {
             if (prevGridUI != null)
             {
-                prevGridUI.OnEndDragOver();
+                prevGridUI.OnDragOverEnd();
             }
 
             if (gridUI != null)
             {
-                gridUI.OnBeginDragOver(DraggingItem);
+                gridUI.OnDragOverBegin();
             }
 
             prevGridUI = gridUI;
@@ -79,78 +78,45 @@ public class ItemDragManager : MonoBehaviour
 
         if (gridUI != null)
         {
-            gridUI.OnDragOver(mousePosition, DraggingItem);
+            gridUI.OnDragOver(dragContext, mousePosition);
         }
     }
 
 
-    private void MoveItem(ItemLocation fromLocation, ItemLocation toLocation, ItemUI itemUI)
+    public void BeginItemDrag(ItemUI itemUI, ItemLocation fromLocation)
     {
-        // 데이터 처리
-        if (fromLocation != toLocation)
-        {
-            fromLocation.inventoryData.RemoveItem(fromLocation.gridID, itemUI.Data);
-            toLocation.inventoryData.AddItemAtLocation(toLocation, itemUI.Data);
-        }
-
-        // UI 처리
-        if (InventoryUIManager.TryGetUI(toLocation.inventoryData, out InventoryUI inventoryUI))
-        {
-            inventoryUI.PlaceItemUIAtLocation(toLocation, itemUI);
-        }
-        else
-        {
-            // 오브젝트 풀에 ItemUI 반환
-        }
-    }
-
-
-    public void AddItemAtLocation(ItemLocation toLocation, ItemUI itemUI)
-    {
-        toLocation.inventoryData.AddItemAtLocation(toLocation, itemUI.Data);
-
-        // UI 처리
-        if (InventoryUIManager.TryGetUI(toLocation.inventoryData, out InventoryUI inventoryUI))
-        {
-            inventoryUI.PlaceItemUIAtLocation(toLocation, itemUI);
-        }
-        else
-        {
-            // 오브젝트 풀에 ItemUI 반환
-        }
-    }
-
-
-    public void BeginItemDrag(ItemLocation fromLocation, ItemUI itemUI)
-    {
-        IsDragging = true;
-        DraggingItem = itemUI;
-        this.fromLocation = fromLocation;
-
-        itemUI.transform.SetParent(transform);
-        itemUI.transform.localPosition = Vector3.zero;
-        itemUI.SetUITransparent(true);
+        itemUI.SetItemImageEnabled(false);
+        dragContext.BeginItemDrag(itemUI, fromLocation);
+        dragGhost.BeginItemDrag(dragContext);
 
         inventoryRaycaster.InitRaycaster();
         prevGridUI = null;
     }
 
-    public void DropItem(ItemLocation toLocation)
+    public void EndItemDrag(ItemLocation toLocation)
     {
-        IsDragging = false;
-
-        DraggingItem.SetUITransparent(false);
-        MoveItem(fromLocation, toLocation, DraggingItem);
-        DraggingItem = null;
-
         if (prevGridUI != null)
         {
-            prevGridUI.OnEndDragOver();
+            prevGridUI.OnDragOverEnd();
         }
+
+        dragGhost.EndItemDrag();
+        dragContext.DraggingItemUI.SetItemImageEnabled(true);
+
+        InventoryDataManager.instance.MoveItemData(dragContext.ItemData, dragContext.FromLocation, toLocation);
+
+        dragContext.EndItemDrag();
     }
 
     public void CancelItemDrag()
     {
-        DropItem(fromLocation);
+        if (prevGridUI != null)
+        {
+            prevGridUI.OnDragOverEnd();
+        }
+
+        dragGhost.EndItemDrag();
+        dragContext.DraggingItemUI.SetItemImageEnabled(true);
+        dragContext.EndItemDrag();
     }
 }

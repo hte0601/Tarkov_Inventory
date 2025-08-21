@@ -9,6 +9,9 @@ public class InventoryTester : MonoBehaviour
     [SerializeField] private InventoryUI shopUI;
     [SerializeField] private InventoryUI aacpcUI;
 
+    InventoryUIController uiController;
+    InventoryDataManager dataManager;
+
     private readonly Dictionary<ItemID, int> itemListToCreate = new()
     {
         { ItemID.LEDX, 3 },
@@ -24,49 +27,56 @@ public class InventoryTester : MonoBehaviour
     };
 
 
+    private void Awake()
+    {
+        uiController = InventoryUIController.instance;
+        dataManager = InventoryDataManager.instance;
+    }
+
     private void Start()
     {
         if (stashUI != null)
         {
-            stashUI.SetupUI(new InventoryData(stashUI.inventorySize));
+            uiController.OpenUI(new InventoryData(stashUI.inventorySize), stashUI);
         }
 
         if (shopUI != null)
         {
-            shopUI.SetupUI(new InventoryData(shopUI.inventorySize));
+            uiController.OpenUI(new InventoryData(shopUI.inventorySize), shopUI);
 
             foreach (var item in itemListToCreate)
             {
                 for (int i = 0; i < item.Value; i++)
                 {
-                    AddItemToInventory(shopUI, item.Key, out _);
+                    TryAddItemToInventory(shopUI, item.Key);
                 }
             }
         }
 
-        if (aacpcUI != null && shopUI != null)
+        if (aacpcUI != null && stashUI != null)
         {
-            if (AddItemToInventory(shopUI, ItemID.AACPC, out ItemUI itemUI)
-                && itemUI.Data is IContainableItem itemData)
+            ItemData aacpcItemData = ItemFactory.CreateItemData(ItemID.AACPC);
+
+            if (TryAddItemToInventory(stashUI, aacpcItemData)
+                && aacpcItemData is IContainableItemData aacpcRigData)
             {
-                aacpcUI.SetupUI(itemData.InnerInventoryData);
+                uiController.OpenUI(aacpcRigData.InnerInventoryData, aacpcUI);
             }
             else
             {
-                aacpcUI.SetupUI(new InventoryData(aacpcUI.inventorySize));
+                uiController.OpenUI(new InventoryData(aacpcUI.inventorySize), aacpcUI);
             }
         }
     }
 
 
-    private bool AddItemToInventory(InventoryUI inventoryUI, ItemID itemID, out ItemUI itemUI)
+    private bool TryAddItemToInventory(InventoryUI inventoryUI, ItemID itemID)
     {
         ItemData itemData = ItemFactory.CreateItemData(itemID);
 
-        if (inventoryUI.Data.TryFindLocationToAddItem(itemData, out ItemLocation location))
+        if (inventoryUI.Data.TryFindLocationToAddItem(itemData, out ItemLocation addLocation))
         {
-            itemUI = ItemUIPool.instance.GetItemUI(itemData);
-            ItemDragManager.instance.AddItemAtLocation(location, itemUI);
+            dataManager.AddItemData(itemData, addLocation);
 
             return true;
         }
@@ -74,7 +84,22 @@ public class InventoryTester : MonoBehaviour
         {
             Debug.Log("(test) 인벤토리에 아이템을 추가 할 자리가 없음");
 
-            itemUI = null;
+            return false;
+        }
+    }
+
+    private bool TryAddItemToInventory(InventoryUI inventoryUI, ItemData itemData)
+    {
+        if (inventoryUI.Data.TryFindLocationToAddItem(itemData, out ItemLocation addLocation))
+        {
+            dataManager.AddItemData(itemData, addLocation);
+
+            return true;
+        }
+        else
+        {
+            Debug.Log("(test) 인벤토리에 아이템을 추가 할 자리가 없음");
+
             return false;
         }
     }

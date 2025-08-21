@@ -11,9 +11,9 @@ public class ItemDragContext
 
     public ItemData ItemData { get => DraggingItemUI.Data; }
     public RowColumn ItemUISize { get => DraggingItemUI.Data.GetItemSize(IsItemUIRotated); }
-    public Vector2 TopLeftCellOffset { get => DraggingItemUI.GetTopLeftCellOffset(IsItemUIRotated); }
+    public Vector2 ItemUITopLeftCellOffset { get => DraggingItemUI.GetTopLeftCellOffset(IsItemUIRotated); }
 
-    public void BeginItemDrag(ItemLocation fromLocation, ItemUI draggingItemUI)
+    public void BeginItemDrag(ItemUI draggingItemUI, ItemLocation fromLocation)
     {
         IsDragging = true;
         FromLocation = fromLocation;
