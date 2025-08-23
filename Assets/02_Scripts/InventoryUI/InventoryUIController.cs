@@ -25,6 +25,7 @@ public class InventoryUIController
         {
             inventoryUI.SetupUI(inventoryData);
 
+            inventoryUI.OnItemDoubleClick += HandleItemDoubleClick;
             inventoryUI.OnItemDragBegin += HandleItemDragBegin;
             inventoryUI.OnItemDragEnd += HandleItemDragEnd;
             inventoryUI.OnItemDropOnInventoryGrid += HandleItemDropOnInventoryGrid;
@@ -49,6 +50,11 @@ public class InventoryUIController
 
 
     // InventoryUI의 드래그 드랍 이벤트에 대한 핸들러
+    private void HandleItemDoubleClick(IInventoryUI inventoryUI, ItemUI itemUI)
+    {
+        Debug.Log("Item Double Clicked");
+    }
+
     private void HandleItemDragBegin(IInventoryUI inventoryUI, ItemUI itemUI)
     {
         if (!ItemDragManager.instance.dragContext.IsDragging)

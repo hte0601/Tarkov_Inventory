@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, IDropHandler
+public class ItemUI : UIBase, IPointerClickHandler, IDragHandler, IBeginDragHandler, IEndDragHandler, IDropHandler
 {
     private static readonly Dictionary<RowColumn, Vector2> cachedTopLeftCellOffset = new();
 
@@ -18,14 +19,20 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
     }
 
 
-    public ItemData Data { get; private set; }
-    public InventoryGridUI parentGridUI;
-    private Image itemImage;
+    public event Action<ItemUI, PointerEventData> OnDoubleClick;
+    public event Action<ItemUI, PointerEventData> OnDragBegin;
+    public event Action<ItemUI, PointerEventData> OnDragEnd;
+    public event Action<ItemUI, PointerEventData> OnDropped;
 
+    public ItemData Data { get; private set; }
+    private Image itemImage;
+    private DoubleClickDetector clickDetector;
 
     protected override void Awake()
     {
         base.Awake();
+
+        clickDetector = new DoubleClickDetector();
 
         if (!TryGetComponent(out itemImage))
         {
@@ -48,18 +55,21 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
     public void ResetUI()
     {
         Data = null;
-        parentGridUI = null;
-
         itemImage.sprite = null;
         rectTransform.rotation = Quaternion.identity;
         rectTransform.sizeDelta = CalcItemUIObjectSize(new ItemSizeData(1, 1));
     }
+
 
     public void SetItemImageEnabled(bool enabled)
     {
         itemImage.enabled = enabled;
     }
 
+    public Sprite GetItemImageSprite()
+    {
+        return itemImage.sprite;
+    }
 
     public Vector2 GetTopLeftCellOffset(bool isItemUIRotated)
     {
@@ -76,36 +86,39 @@ public class ItemUI : UIBase, IDragHandler, IBeginDragHandler, IEndDragHandler, 
         return offset;
     }
 
-    public Sprite GetItemImageSprite()
-    {
-        return itemImage.sprite;
-    }
-
 
     // EventSystem Handler 구현
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left && clickDetector.IsDoubleClick())
+        {
+            OnDoubleClick?.Invoke(this, eventData);
+        }
+    }
+
     public void OnDrag(PointerEventData eventData) { }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
+        if (eventData.button == PointerEventData.InputButton.Left)
         {
-            parentGridUI.HandleItemUIBeginDrag(this, eventData);
+            OnDragBegin?.Invoke(this, eventData);
         }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
+        if (eventData.button == PointerEventData.InputButton.Left)
         {
-            parentGridUI.HandleItemUIEndDrag(this, eventData);
+            OnDragEnd?.Invoke(this, eventData);
         }
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left && parentGridUI != null)
+        if (eventData.button == PointerEventData.InputButton.Left)
         {
-            parentGridUI.HandleItemUIDrop(this, eventData);
+            OnDropped?.Invoke(this, eventData);
         }
     }
 }

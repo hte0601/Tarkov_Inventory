@@ -90,7 +90,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29a54395889fda54fa33e19c2e31c01a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemListObj: {fileID: 3659331904880284621}
+  itemRootObj: {fileID: 3659331904880284621}
   dropIndicator: {fileID: 2790035378815507116}
   _gridSize:
     row: 8
@@ -193,7 +193,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2250285963133956019}
   m_Layer: 5
-  m_Name: Item List
+  m_Name: Item Root
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -2,6 +2,7 @@ using System;
 
 public interface IInventoryUI
 {
+    public event Action<IInventoryUI, ItemUI> OnItemDoubleClick;
     public event Action<IInventoryUI, ItemUI> OnItemDragBegin;
     public event Action<IInventoryUI, ItemUI> OnItemDragEnd;
     public event Action<IInventoryUI, ItemUI, ItemLocation> OnItemDropOnInventoryGrid;
@@ -13,10 +14,4 @@ public interface IInventoryUI
     public void ResetUI();
     public bool AddItemUI(ItemUI itemUI);
     public bool RemoveItemUI(int gridID, RowColumn gridIndex, out ItemUI itemUI);
-
-    // IInventoryGridUIEventHandler로 분리
-    public void HandleItemDragBegin(ItemUI itemUI, int gridID);
-    public void HandleItemDragEnd(ItemUI itemUI, int gridID);
-    public void HandleItemDrop(ItemDragContext dragContext, int gridID, RowColumn mouseIndex, RowColumn dropIndex);
-    public void HandleItemDragOver(ItemDragContext dragContext, int gridID, RowColumn mouseIndex, RowColumn dragOverIndex);
 }

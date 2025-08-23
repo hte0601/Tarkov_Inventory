@@ -1,21 +1,26 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
+public class InventoryGridUI : UIBase, IDropHandler
 {
     public const int SLOT_SIZE = 63;
     public const int PADDING = 1;
 
-    [SerializeField] private GameObject itemListObj;
-    [SerializeField] private DropIndicatorUI dropIndicator;
+    public event Action<int, ItemUI> OnItemDoubleClick;
+    public event Action<int, ItemUI> OnItemDragBegin;
+    public event Action<int, ItemUI> OnItemDragEnd;
+    public event Action<int, ItemDragContext, RowColumn, RowColumn> OnItemDrop;
+    public event Action<int, ItemDragContext, RowColumn, RowColumn> OnItemDragOver;
 
-    private IInventoryUI parentInventoryUI;
-    private int gridID;
+    [SerializeField] private GameObject itemRootObj;
+    [SerializeField] private DropIndicatorUI dropIndicator;
     [SerializeField] private RowColumn _gridSize;  // 인스펙터에서 값 설정
 
-    public Transform ItemListTransform { get; private set; }
+    private Transform itemRootTransform;
+    private int gridID;
 
     public RowColumn GridSize
     {
@@ -23,23 +28,34 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     }
 
 
-    public void Initialize(IInventoryUI parentInventoryUI, int gridID)
+    public void Initialize(int gridID)
     {
-        ItemListTransform = itemListObj.transform;
+        itemRootTransform = itemRootObj.transform;
 
-        this.parentInventoryUI = parentInventoryUI;
         this.gridID = gridID;
     }
 
 
     public void AddItemUIAtIndex(ItemUI itemUI, RowColumn gridIndex, bool isItemUIRotated)
     {
-        itemUI.parentGridUI = this;
-        itemUI.transform.SetParent(ItemListTransform);
+        itemUI.OnDoubleClick += HandleItemUIDoubleClick;
+        itemUI.OnDragBegin += HandleItemUIDragBegin;
+        itemUI.OnDragEnd += HandleItemUIDragEnd;
+        itemUI.OnDropped += HandleItemUIDropped;
+
+        itemUI.transform.SetParent(itemRootTransform);
 
         Vector2 localPosition = GridIndexToLocalPoint(gridIndex) - itemUI.GetTopLeftCellOffset(isItemUIRotated);
         Quaternion localRotation = isItemUIRotated ? Quaternion.Euler(0, 0, -90f) : Quaternion.identity;
         itemUI.transform.SetLocalPositionAndRotation(localPosition, localRotation);
+    }
+
+    public void RemoveItemUI(ItemUI itemUI)
+    {
+        itemUI.OnDoubleClick -= HandleItemUIDoubleClick;
+        itemUI.OnDragBegin -= HandleItemUIDragBegin;
+        itemUI.OnDragEnd -= HandleItemUIDragEnd;
+        itemUI.OnDropped -= HandleItemUIDropped;
     }
 
     public void SetIndicator(RowColumn gridIndex, RowColumn indicatorSize, bool canDrop)
@@ -48,18 +64,23 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     }
 
 
-    // ItemUI의 드래그 드랍 이벤트에 대한 핸들러
-    public void HandleItemUIBeginDrag(ItemUI itemUI, PointerEventData eventData)
+    // ItemUI의 마우스 이벤트에 대한 핸들러
+    private void HandleItemUIDoubleClick(ItemUI itemUI, PointerEventData eventData)
     {
-        parentInventoryUI.HandleItemDragBegin(itemUI, gridID);
+        OnItemDoubleClick?.Invoke(gridID, itemUI);
     }
 
-    public void HandleItemUIEndDrag(ItemUI itemUI, PointerEventData eventData)
+    private void HandleItemUIDragBegin(ItemUI itemUI, PointerEventData eventData)
     {
-        parentInventoryUI.HandleItemDragEnd(itemUI, gridID);
+        OnItemDragBegin?.Invoke(gridID, itemUI);
     }
 
-    public void HandleItemUIDrop(ItemUI itemUI, PointerEventData eventData)
+    private void HandleItemUIDragEnd(ItemUI itemUI, PointerEventData eventData)
+    {
+        OnItemDragEnd?.Invoke(gridID, itemUI);
+    }
+
+    private void HandleItemUIDropped(ItemUI itemUI, PointerEventData eventData)
     {
         OnDrop(eventData);
     }
@@ -68,17 +89,17 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
     // IDropHandler 구현
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left
-            && ItemDragManager.instance.dragContext.IsDragging)
+        ItemDragContext dragContext = ItemDragManager.instance.dragContext;
+
+        if (eventData.button == PointerEventData.InputButton.Left && dragContext.IsDragging)
         {
-            ItemDragContext dragContext = ItemDragManager.instance.dragContext;
             Vector2 mousePosition = eventData.position;
             Vector2 itemPosition = mousePosition + dragContext.ItemUITopLeftCellOffset;
 
             ScreenPointToGridIndex(mousePosition, out RowColumn mouseIndex);
             ScreenPointToGridIndex(itemPosition, out RowColumn itemIndex);
 
-            parentInventoryUI.HandleItemDrop(dragContext, gridID, mouseIndex, itemIndex);
+            OnItemDrop?.Invoke(gridID, dragContext, mouseIndex, itemIndex);
         }
     }
 
@@ -101,7 +122,7 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
         ScreenPointToGridIndex(mousePosition, out RowColumn mouseIndex);
         ScreenPointToGridIndex(itemPosition, out RowColumn itemIndex);
 
-        parentInventoryUI.HandleItemDragOver(dragContext, gridID, mouseIndex, itemIndex);
+        OnItemDragOver?.Invoke(gridID, dragContext, mouseIndex, itemIndex);
     }
 
 
@@ -154,13 +175,5 @@ public class InventoryGridUI : UIBase, IDropHandler, IPointerDownHandler
         localPoint.y *= -1f;
 
         return localPoint;
-    }
-
-
-    // 테스트용
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        // ScreenPointToLocalPoint(eventData.position, out Vector2 localPoint);
-        // Debug.Log(localPoint);
     }
 }

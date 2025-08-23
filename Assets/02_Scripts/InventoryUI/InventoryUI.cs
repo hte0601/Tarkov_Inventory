@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class InventoryUI : MonoBehaviour, IInventoryUI
 {
+    public event Action<IInventoryUI, ItemUI> OnItemDoubleClick;
     public event Action<IInventoryUI, ItemUI> OnItemDragBegin;
     public event Action<IInventoryUI, ItemUI> OnItemDragEnd;
     public event Action<IInventoryUI, ItemUI, ItemLocation> OnItemDropOnInventoryGrid;
@@ -24,7 +25,13 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
 
         for (int i = 0; i < gridCount; i++)
         {
-            gridList[i].Initialize(this, i);
+            gridList[i].Initialize(i);
+            gridList[i].OnItemDoubleClick += HandleItemDoubleClick;
+            gridList[i].OnItemDragBegin += HandleItemDragBegin;
+            gridList[i].OnItemDragEnd += HandleItemDragEnd;
+            gridList[i].OnItemDrop += HandleItemDrop;
+            gridList[i].OnItemDragOver += HandleItemDragOver;
+
             inventorySize[i] = gridList[i].GridSize;
             itemUIList[i] = new Dictionary<RowColumn, ItemUI>();
         }
@@ -66,7 +73,7 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
     {
         if (itemUIList[gridID].Remove(gridIndex, out itemUI))
         {
-            itemUI.parentGridUI = null;
+            gridList[gridID].RemoveItemUI(itemUI);
 
             return true;
         }
@@ -77,23 +84,28 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
     }
 
 
-    // InventoryGridUI의 드래그 드랍 이벤트에 대한 핸들러
-    public void HandleItemDragBegin(ItemUI itemUI, int gridID)
+    // InventoryGridUI의 아이템 관련 이벤트에 대한 핸들러
+    private void HandleItemDoubleClick(int gridID, ItemUI itemUI)
+    {
+        OnItemDoubleClick?.Invoke(this, itemUI);
+    }
+
+    private void HandleItemDragBegin(int gridID, ItemUI itemUI)
     {
         OnItemDragBegin?.Invoke(this, itemUI);
     }
 
-    public void HandleItemDragEnd(ItemUI itemUI, int gridID)
+    private void HandleItemDragEnd(int gridID, ItemUI itemUI)
     {
         OnItemDragEnd?.Invoke(this, itemUI);
     }
 
-    public void HandleItemDrop(ItemDragContext dragContext, int gridID, RowColumn mouseIndex, RowColumn dropIndex)
+    private void HandleItemDrop(int gridID, ItemDragContext dragContext, RowColumn mouseIndex, RowColumn dropIndex)
     {
         ItemUI droppedItemUI = dragContext.DraggingItemUI;
 
         if (Data.TryGetItemAtIndex(gridID, mouseIndex, out ItemData itemInSlot)
-            && !ReferenceEquals(itemInSlot, dragContext.ItemData))
+            && !ReferenceEquals(itemInSlot, droppedItemUI.Data))
         {
             if (itemInSlot is IContainableItemData containableItem)
             {
@@ -107,7 +119,7 @@ public class InventoryUI : MonoBehaviour, IInventoryUI
         OnItemDropOnInventoryGrid?.Invoke(this, droppedItemUI, dropLocation);
     }
 
-    public void HandleItemDragOver(ItemDragContext dragContext, int gridID, RowColumn mouseIndex, RowColumn dragOverIndex)
+    private void HandleItemDragOver(int gridID, ItemDragContext dragContext, RowColumn mouseIndex, RowColumn dragOverIndex)
     {
         bool? canDrop = null;
 
