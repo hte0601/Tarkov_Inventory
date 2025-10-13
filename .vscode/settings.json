@@ -56,5 +56,5 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Tarkov Inventory.sln"
+    "dotnet.defaultSolution": "Tarkov Inventory.slnx"
 }
